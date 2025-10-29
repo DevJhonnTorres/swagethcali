@@ -3,29 +3,54 @@
 import { useState } from 'react';
 import { useCart } from '@/app/contexts/CartContext';
 import CartSummary from '@/components/cart/CartSummary';
-// import { Transaction } from '@coinbase/onchainkit';
-import { ArrowLeft, CreditCard, Wallet } from 'lucide-react';
+import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { initiatePayment, pollPaymentStatus, formatUSDCAmount } from '@/app/lib/base-pay';
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string>('');
+  const [txHash, setTxHash] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'crypto' | 'card'>('crypto');
 
-  const handleCryptoPayment = async () => {
+  const handleBasePayPayment = async () => {
     setIsProcessing(true);
+    setPaymentStatus('Iniciando pago...');
+
     try {
-      // Aquí implementarías la lógica de pago con crypto usando OnchainKit
-      // Por ahora simulamos el proceso
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const totalAmount = cart.total / 100; // Convert from cents to dollars
+      const formattedAmount = formatUSDCAmount(totalAmount);
+
+      // Initialize payment
+      const payment = await initiatePayment({
+        amount: formattedAmount,
+        to: process.env.NEXT_PUBLIC_RECIPIENT_ADDRESS || '0x0000000000000000000000000000000000000000',
+        testnet: process.env.NEXT_PUBLIC_TESTNET === 'true',
+        payerInfo: {
+          requests: [
+            { type: 'email' },
+          ],
+        },
+      });
+
+      setPaymentStatus('Esperando confirmación...');
+
+      // Poll for payment status
+      const status = await pollPaymentStatus(payment.id, process.env.NEXT_PUBLIC_TESTNET === 'true');
       
-      // Limpiar carrito después del pago exitoso
+      setPaymentStatus('¡Pago completado!');
+      setTxHash(status.transactionHash || '');
+
+      // Wait a moment before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Clear cart and redirect
       clearCart();
-      
-      // Redirigir a página de confirmación
       window.location.href = '/order-confirmation';
     } catch (error) {
       console.error('Error processing payment:', error);
+      setPaymentStatus('Error en el pago. Por favor, inténtalo de nuevo.');
     } finally {
       setIsProcessing(false);
     }
@@ -122,34 +147,85 @@ export default function CheckoutPage() {
               {/* Crypto Payment */}
               {paymentMethod === 'crypto' && (
                 <div className="space-y-6">
-                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-                    <h4 className="font-medium text-primary-900 mb-2">
-                      Pago con Criptomonedas
+                  <div className="bg-cyber-blue/10 border border-cyber-blue/30 rounded-lg p-6">
+                    <h4 className="font-heading text-lg text-cyber-blue mb-3 flex items-center gap-2">
+                      <Wallet className="w-5 h-5" />
+                      Base Pay - USDC
                     </h4>
-                    <p className="text-sm text-primary-700 mb-4">
-                      Conecta tu wallet y confirma la transacción para completar tu compra.
-                      Aceptamos ETH, USDC y USDT en múltiples redes.
+                    <p className="text-text-secondary mb-4">
+                      Pago con USDC en Base. Confirma en <2 segundos. Sin tarjetas ni comisiones adicionales.
                     </p>
                     
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-secondary-600">Redes soportadas:</span>
-                        <span className="font-medium">Ethereum, Base, Polygon</span>
+                    <div className="space-y-2 text-sm bg-bg-card/50 p-4 rounded border border-eth-gray/20">
+                      <div className="flex justify-between items-center">
+                        <span className="text-text-secondary">Red:</span>
+                        <span className="font-medium text-cyber-blue">Base Network</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-secondary-600">Tokens aceptados:</span>
-                        <span className="font-medium">ETH, USDC, USDT</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-text-secondary">Token:</span>
+                        <span className="font-medium text-cyber-blue">USDC</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-text-secondary">Tiempo:</span>
+                        <span className="font-medium text-cyber-green">~2 segundos</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-text-secondary">Gas:</span>
+                        <span className="font-medium text-cyber-green">Patrocinado</span>
                       </div>
                     </div>
                   </div>
 
+                  {/* Base Pay Button with cyberpunk style */}
                   <button
-                    onClick={handleCryptoPayment}
+                    onClick={handleBasePayPayment}
                     disabled={isProcessing}
-                    className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-secondary-400 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+                    className="w-full relative bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-blue disabled:from-eth-gray disabled:to-eth-gray text-white font-heading uppercase py-4 px-6 rounded-lg transition-all duration-300 border border-cyber-blue/50 disabled:border-eth-gray/30 shadow-lg hover:shadow-cyber-blue/50"
                   >
-                    {isProcessing ? 'Procesando...' : 'Simular Pago (Demo)'}
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>{paymentStatus || 'Procesando...'}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <Wallet className="w-5 h-5" />
+                        <span>Pagar con Base Pay</span>
+                      </div>
+                    )}
                   </button>
+
+                  {/* Payment Status */}
+                  {paymentStatus && (
+                    <div className={`p-4 rounded-lg border ${
+                      paymentStatus.includes('Error') 
+                        ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+                        : paymentStatus.includes('completado')
+                        ? 'bg-cyber-green/10 border-cyber-green/30 text-cyber-green'
+                        : 'bg-cyber-blue/10 border-cyber-blue/30 text-cyber-blue'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {paymentStatus.includes('Error') ? (
+                          <span className="text-red-400">✗</span>
+                        ) : paymentStatus.includes('completado') ? (
+                          <CheckCircle2 className="w-5 h-5" />
+                        ) : (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        )}
+                        <span className="font-medium">{paymentStatus}</span>
+                      </div>
+                      {txHash && (
+                        <a
+                          href={`https://basescan.org/tx/${txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-cyber-blue hover:text-cyber-purple mt-2 block"
+                        >
+                          Ver transacción en BaseScan →
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
