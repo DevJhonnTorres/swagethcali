@@ -79,20 +79,20 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-brand-black cyber-grid">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <Link
-              href="/cart"
-              className="inline-flex items-center space-x-2 text-cyber-blue hover:text-cyber-purple mb-4 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Volver al carrito</span>
-            </Link>
-            <h1 className="text-4xl font-heading font-bold text-white glitch" data-text="Finalizar Compra">Finalizar Compra</h1>
-            <p className="text-xl text-text-secondary">
-              Completa tu pedido de productos ETH Cali
-            </p>
-          </div>
+        {/* Header */}
+        <div className="mb-8">
+          <Link
+            href="/cart"
+            className="inline-flex items-center space-x-2 text-cyber-blue hover:text-cyber-purple mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Volver al carrito</span>
+          </Link>
+          <h1 className="text-4xl font-heading font-bold text-white glitch" data-text="Finalizar Compra">Finalizar Compra</h1>
+          <p className="text-xl text-text-secondary">
+            Completa tu pedido de productos ETH Cali
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
