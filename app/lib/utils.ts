@@ -20,3 +20,4 @@ export function formatAddress(address: string): string {
 export function calculateDiscount(originalPrice: number, salePrice: number): number {
   return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
 }
+
