@@ -20,6 +20,8 @@ type CartAction =
   | { type: 'CLEAR_CART' };
 
 function cartReducer(state: Cart, action: CartAction): Cart {
+  let newItems: CartItem[] = [];
+
   switch (action.type) {
     case 'ADD_ITEM': {
       const { product, quantity, variant } = action.payload;
@@ -28,64 +30,57 @@ function cartReducer(state: Cart, action: CartAction): Cart {
       );
 
       if (existingItem) {
-        return {
-          ...state,
-          items: state.items.map((item) =>
-            item.id === existingItem.id
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          ),
+        newItems = state.items.map((item) =>
+          item.id === existingItem.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        const newItem: CartItem = {
+          id: `${product.id}-${variant?.id || 'default'}-${Date.now()}`,
+          product,
+          quantity,
+          variant,
         };
+        newItems = [...state.items, newItem];
       }
-
-      const newItem: CartItem = {
-        id: `${product.id}-${variant?.id || 'default'}-${Date.now()}`,
-        product,
-        quantity,
-        variant,
-      };
-
-      return {
-        ...state,
-        items: [...state.items, newItem],
-      };
+      break;
     }
 
     case 'REMOVE_ITEM': {
-      return {
-        ...state,
-        items: state.items.filter((item) => item.id !== action.payload.itemId),
-      };
+      newItems = state.items.filter((item) => item.id !== action.payload.itemId);
+      break;
     }
 
     case 'UPDATE_QUANTITY': {
       const { itemId, quantity } = action.payload;
       if (quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter((item) => item.id !== itemId),
-        };
-      }
-
-      return {
-        ...state,
-        items: state.items.map((item) =>
+        newItems = state.items.filter((item) => item.id !== itemId);
+      } else {
+        newItems = state.items.map((item) =>
           item.id === itemId ? { ...item, quantity } : item
-        ),
-      };
+        );
+      }
+      break;
     }
 
     case 'CLEAR_CART': {
-      return {
-        items: [],
-        total: 0,
-        itemCount: 0,
-      };
+      newItems = [];
+      break;
     }
 
     default:
       return state;
   }
+
+  // Calculate totals
+  const { total, itemCount } = calculateCartTotals(newItems);
+
+  return {
+    items: newItems,
+    total,
+    itemCount,
+  };
 }
 
 function calculateCartTotals(items: CartItem[]): { total: number; itemCount: number } {
@@ -105,24 +100,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     total: 0,
     itemCount: 0,
   });
-
-  // Recalculate totals when items change
-  useEffect(() => {
-    const { total, itemCount } = calculateCartTotals(cart.items);
-    if (total !== cart.total || itemCount !== cart.itemCount) {
-      dispatch({ type: 'CLEAR_CART' });
-      cart.items.forEach((item) => {
-        dispatch({
-          type: 'ADD_ITEM',
-          payload: {
-            product: item.product,
-            quantity: item.quantity,
-            variant: item.variant,
-          },
-        });
-      });
-    }
-  }, [cart.items]);
 
   const addToCart = (product: Product, quantity = 1, variant?: any) => {
     dispatch({
