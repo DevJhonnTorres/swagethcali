@@ -153,7 +153,7 @@ export default function CheckoutPage() {
                       Base Pay - USDC
                     </h4>
                     <p className="text-text-secondary mb-4">
-                      Pago con USDC en Base. Confirma en <2 segundos. Sin tarjetas ni comisiones adicionales.
+                      Pago con USDC en Base. Confirma en menos de 2 segundos. Sin tarjetas ni comisiones adicionales.
                     </p>
                     
                     <div className="space-y-2 text-sm bg-bg-card/50 p-4 rounded border border-eth-gray/20">
