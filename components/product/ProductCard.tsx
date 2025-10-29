@@ -20,6 +20,12 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // Add cyberpunk animation effect
+    const button = e.currentTarget;
+    button.classList.add('animate-pulse-glow');
+    setTimeout(() => {
+      button.classList.remove('animate-pulse-glow');
+    }, 600);
     addToCart(product, 1);
   };
 
