@@ -68,8 +68,14 @@ export async function POST(request: NextRequest) {
           orderId,
           customerEmail: orderData.customerEmail || 'customer@example.com',
           customerName: orderData.customerName,
+          customerPhone: orderData.customerPhone,
+          shippingAddress: orderData.shippingAddress,
           items: orderData.items || [],
           total: orderData.total || 0,
+          subtotal: orderData.subtotal,
+          shipping: orderData.shipping,
+          tax: orderData.tax,
+          transactionHash: transactionHash,
         });
         
         console.log('📧 Email sent:', emailResult.success);
@@ -79,8 +85,14 @@ export async function POST(request: NextRequest) {
           orderId,
           customerEmail: orderData.customerEmail || 'customer@example.com',
           customerName: orderData.customerName,
+          customerPhone: orderData.customerPhone,
+          shippingAddress: orderData.shippingAddress,
           items: orderData.items || [],
           total: orderData.total || 0,
+          subtotal: orderData.subtotal,
+          shipping: orderData.shipping,
+          tax: orderData.tax,
+          transactionHash: transactionHash,
         });
         
         console.log('📧 Fulfillment email sent:', fulfillmentResult.success);

@@ -73,10 +73,10 @@ export default function CheckoutPage() {
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
       try {
-        // Calculate totals for order data
-        const shipping = cart.total > 200000 ? 0 : 15000;
-        const tax = cart.total * 0.19;
-        const totalAmount = cart.total + shipping + tax;
+        // Calculate totals in cents for order data
+        const shippingCents = cart.total > 200000 ? 0 : 15000;
+        const taxCents = Math.round(cart.total * 0.19);
+        const totalAmountCents = cart.total + shippingCents + taxCents;
 
         await fetch('/api/payments/confirm', {
           method: 'POST',
@@ -93,7 +93,10 @@ export default function CheckoutPage() {
               customerPhone: contactInfo.phone,
               shippingAddress: `${contactInfo.address}, ${contactInfo.city}, ${contactInfo.country}`,
               items: cart.items,
-              total: totalAmount,
+              total: totalAmountCents,
+              subtotal: cart.total,
+              shipping: shippingCents,
+              tax: taxCents,
             },
           }),
         });
