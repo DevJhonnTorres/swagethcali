@@ -17,21 +17,27 @@ export default function StarWarsBackground() {
   useEffect(() => {
     // Generate random stars
     const newStars: Star[] = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 150; i++) {
       newStars.push({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        duration: Math.random() * 3 + 2,
-        delay: Math.random() * 3,
+        size: Math.random() * 4 + 1,
+        duration: Math.random() * 4 + 3,
+        delay: Math.random() * 5,
       });
     }
     setStars(newStars);
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div 
+      className="absolute inset-0 overflow-hidden pointer-events-none"
+      style={{
+        perspective: '1000px',
+        transformStyle: 'preserve-3d',
+      }}
+    >
       {stars.map((star) => (
         <div
           key={star.id}
@@ -44,6 +50,7 @@ export default function StarWarsBackground() {
             animation: `star-wars ${star.duration}s linear infinite`,
             animationDelay: `${star.delay}s`,
             boxShadow: `0 0 ${star.size * 2}px rgba(255, 255, 255, 0.8)`,
+            transformOrigin: 'center center',
           }}
         />
       ))}
