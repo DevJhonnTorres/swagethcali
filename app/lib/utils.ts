@@ -6,11 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('es-CO', {
+  // Convert from cents to dollars for display
+  const priceInDollars = price / 100;
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(price);
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(priceInDollars);
 }
 
 export function formatAddress(address: string): string {
