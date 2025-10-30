@@ -40,13 +40,11 @@ export default function CheckoutPage() {
 
     try {
       // Calculate totals in USD (cart.total is already in cents)
-      const subtotalUsd = cart.total / 100; // Convert cents to dollars
-      const shippingUsd = subtotalUsd > 200 ? 0 : 15; // Free shipping over $200
-      const taxUsd = subtotalUsd * 0.19;
-      const totalUsd = subtotalUsd + shippingUsd + taxUsd;
+      // For testing: force all to sum exactly $1.00 total
+      const totalUsd = 1.00;
       const formattedAmount = formatUSDCAmount(totalUsd);
 
-      console.log('💳 Starting payment (Base Pay SDK):', { subtotalUsd, shippingUsd, taxUsd, totalUsd, formattedAmount });
+      console.log('💳 Starting payment (Base Pay SDK):', { totalUsd, formattedAmount });
 
       // 1) Open Base Pay and request payment
       const payment = await pay({
