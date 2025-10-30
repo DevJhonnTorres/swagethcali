@@ -9,6 +9,9 @@ import twilio from 'twilio';
 // Only create Resend client if API key is provided
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+// Get the from email from environment or use default
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ETH Cali Swag <onboarding@resend.dev>';
+
 interface OrderData {
   orderId: string;
   customerEmail: string;
@@ -44,7 +47,7 @@ export async function sendOrderConfirmationEmail(orderData: OrderData) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'ETH Cali Swag <onboarding@resend.dev>',
+      from: FROM_EMAIL,
       to: orderData.customerEmail,
       subject: `Confirmación de Pedido #${orderData.orderId}`,
       html: generateOrderConfirmationEmail(orderData),
@@ -76,7 +79,7 @@ export async function sendFulfillmentEmail(orderData: OrderData) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'ETH Cali Swag <onboarding@resend.dev>',
+      from: FROM_EMAIL,
       to: adminEmail,
       subject: `📦 Nueva Orden para Procesar #${orderData.orderId}`,
       html: generateFulfillmentEmail(orderData),
