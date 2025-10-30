@@ -106,9 +106,42 @@ export default function CheckoutPage() {
         }
       }
 
+      // Persist order locally to show details in confirmation page
+      try {
+        const subtotal = cart.total;
+        const shippingCop = cart.total > 200000 ? 0 : 15000;
+        const taxCop = Math.round(cart.total * 0.19);
+        const totalCop = subtotal + shippingCop + taxCop;
+
+        const lastOrder = {
+          orderId: payment.orderId || `ETH-${Date.now().toString().slice(-6)}`,
+          paymentId: payment.id,
+          transactionHash: status.transactionHash,
+          items: cart.items,
+          totals: {
+            subtotal,
+            shipping: shippingCop,
+            tax: taxCop,
+            total: totalCop,
+          },
+          customer: {
+            name: contactInfo.name,
+            email: contactInfo.email,
+            phone: contactInfo.phone,
+            address: contactInfo.address,
+            city: contactInfo.city,
+            country: contactInfo.country,
+          },
+          method: 'USDC en Base (Base Pay)',
+        };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastOrder', JSON.stringify(lastOrder));
+        }
+      } catch (_) {}
+
       // Wait a moment before redirecting
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
       // Clear cart and redirect
       clearCart();
       window.location.href = '/order-confirmation';
