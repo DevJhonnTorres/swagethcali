@@ -69,7 +69,11 @@ export default function CheckoutPage() {
       });
       
       setPaymentStatus('¡Pago completado!');
-      setTxHash('');
+      // Extract transaction hash from status.id (the SDK returns id as the tx hash)
+      const txHash = status.id || '';
+      setTxHash(txHash);
+
+      console.log('✅ Payment completed:', { status: status.status, txHash });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
       if (status.status === 'completed') {
@@ -87,7 +91,7 @@ export default function CheckoutPage() {
             body: JSON.stringify({
               orderId: payment.id, // using payment.id as order reference
               paymentId: payment.id,
-              transactionHash: undefined,
+              transactionHash: txHash,
               orderData: {
                 customerEmail: contactInfo.email,
                 customerName: contactInfo.name,
@@ -116,7 +120,7 @@ export default function CheckoutPage() {
         const lastOrder = {
           orderId: payment.id,
           paymentId: payment.id,
-          transactionHash: undefined,
+          transactionHash: txHash,
           items: cart.items,
           totals: {
             subtotal: subtotalCents,

@@ -63,7 +63,18 @@ export default function OrderConfirmationPage() {
               <div className="flex justify-between"><span className="text-text-secondary">Método de pago:</span><span className="text-white font-medium">{order?.method || 'USDC en Base (Base Pay)'}</span></div>
               <div className="flex justify-between"><span className="text-text-secondary">Estado:</span><span className="text-cyber-green font-medium">Confirmado</span></div>
               {order?.transactionHash && (
-                <div className="flex justify-between"><span className="text-text-secondary">Tx Hash:</span><span className="text-white font-mono truncate max-w-[220px]" title={order.transactionHash}>{order.transactionHash}</span></div>
+                <div className="flex justify-between">
+                  <span className="text-text-secondary">Tx Hash:</span>
+                  <a 
+                    href={`https://sepolia.basescan.org/tx/${order.transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyber-blue hover:text-cyber-purple font-mono truncate max-w-[220px] hover:underline"
+                    title={order.transactionHash}
+                  >
+                    {order.transactionHash}
+                  </a>
+                </div>
               )}
             </div>
 
