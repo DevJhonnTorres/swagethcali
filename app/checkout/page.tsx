@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useCart } from '@/app/contexts/CartContext';
 import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { initiatePayment, pollPaymentStatus, formatUSDCAmount } from '@/app/lib/base-pay';
+// Base Pay SDK (real payments)
+import { pay, getPaymentStatus } from '@base-org/account';
+import { formatUSDCAmount } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
 
 interface ContactInfo {
@@ -43,37 +45,35 @@ export default function CheckoutPage() {
       const totalAmount = (cart.total + shipping + tax) / 100; // Convert from cents to dollars
       const formattedAmount = formatUSDCAmount(totalAmount);
 
-      console.log('💳 Starting payment:', {
-        amount: formattedAmount,
-        itemCount: cart.items.length,
-        totalCOP: cart.total,
-      });
+      console.log('💳 Starting payment (Base Pay SDK):', { formattedAmount });
 
-      // Initialize payment (creates order in backend)
-      const payment = await initiatePayment({
+      // 1) Open Base Pay and request payment
+      const payment = await pay({
         amount: formattedAmount,
         to: process.env.NEXT_PUBLIC_RECIPIENT_ADDRESS || '0x0000000000000000000000000000000000000000',
         testnet: process.env.NEXT_PUBLIC_TESTNET === 'true',
-        customerId: undefined, // TODO: Get from auth
-        items: cart.items, // Send cart items for order record
-        amountCop: cart.total, // Send total in COP for database
         payerInfo: {
           requests: [
             { type: 'email' },
+            { type: 'phoneNumber', optional: true },
+            { type: 'physicalAddress', optional: true },
           ],
         },
       });
 
-      setPaymentStatus('Esperando confirmación...');
+      setPaymentStatus('Esperando confirmación en la red...');
 
-      // Poll for payment status
-      const status = await pollPaymentStatus(payment.id, process.env.NEXT_PUBLIC_TESTNET === 'true');
+      // 2) Poll until mined (testnet flag MUST match)
+      const status = await getPaymentStatus({
+        id: payment.id,
+        testnet: process.env.NEXT_PUBLIC_TESTNET === 'true',
+      });
       
       setPaymentStatus('¡Pago completado!');
       setTxHash(status.transactionHash || '');
 
-      // Notify backend of payment confirmation
-      if (payment.orderId && status.transactionHash) {
+      // Notify backend of payment confirmation (optional, keeps emails/DB)
+      if (status.transactionHash) {
         try {
           // Calculate totals for order data
           const shipping = cart.total > 200000 ? 0 : 15000;
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              orderId: payment.orderId,
+              orderId: payment.id, // using payment.id as order reference
               paymentId: payment.id,
               transactionHash: status.transactionHash,
               orderData: {
