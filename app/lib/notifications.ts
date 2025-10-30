@@ -426,11 +426,11 @@ function generateFulfillmentEmail(orderData: OrderData): string {
       background: rgba(20, 20, 20, 0.95); 
       border-radius: 12px; 
       overflow: hidden; 
-      border: 2px solid #ff00ff;
-      box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+      border: 2px solid #2d25ff;
+      box-shadow: 0 0 20px rgba(45, 37, 255, 0.3);
     }
     .header { 
-      background: linear-gradient(135deg, #ff00ff, #9900ff); 
+      background: linear-gradient(135deg, #2d25ff, #6e68ff); 
       padding: 40px 30px; 
       text-align: center; 
       position: relative;
@@ -459,34 +459,34 @@ function generateFulfillmentEmail(orderData: OrderData): string {
     }
     .content { padding: 30px; }
     .urgency { 
-      background: rgba(255, 0, 255, 0.1); 
-      border: 2px solid #ff00ff; 
+      background: rgba(45, 37, 255, 0.1); 
+      border: 2px solid #2d25ff; 
       padding: 20px; 
       border-radius: 8px; 
       margin: 20px 0; 
       text-align: center;
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+      box-shadow: 0 0 15px rgba(45, 37, 255, 0.2);
     }
     .urgency h2 {
       font-family: 'Orbitron', sans-serif;
-      color: #ff00ff;
+      color: #2d25ff;
       margin: 0;
       font-size: 20px;
       text-transform: uppercase;
       letter-spacing: 2px;
     }
     .order-info { 
-      background: rgba(255, 0, 255, 0.1); 
-      border: 2px solid #ff00ff; 
+      background: rgba(45, 37, 255, 0.1); 
+      border: 2px solid #2d25ff; 
       padding: 20px; 
       border-radius: 8px; 
       margin-bottom: 20px;
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+      box-shadow: 0 0 15px rgba(45, 37, 255, 0.2);
     }
     .order-info h2 {
       font-family: 'Orbitron', sans-serif;
       font-size: 22px;
-      color: #ff00ff;
+      color: #2d25ff;
       margin: 0 0 15px 0;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -516,12 +516,12 @@ function generateFulfillmentEmail(orderData: OrderData): string {
       background: rgba(20, 20, 20, 0.8); 
       border-radius: 8px; 
       margin-bottom: 15px; 
-      border: 2px solid rgba(255, 0, 255, 0.3);
+      border: 2px solid rgba(45, 37, 255, 0.3);
       transition: all 0.3s ease;
     }
     .product-item:hover {
-      border-color: #ff00ff;
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+      border-color: #2d25ff;
+      box-shadow: 0 0 15px rgba(45, 37, 255, 0.2);
     }
     .product-header { display: flex; align-items: start; margin-bottom: 15px; }
     .product-image { 
@@ -530,14 +530,14 @@ function generateFulfillmentEmail(orderData: OrderData): string {
       object-fit: cover; 
       border-radius: 6px; 
       margin-right: 15px;
-      border: 2px solid #ff00ff;
+      border: 2px solid #2d25ff;
     }
     .product-details { flex: 1; }
     .product-name { 
       font-family: 'Orbitron', sans-serif;
       font-size: 18px; 
       font-weight: 700; 
-      color: #ff00ff; 
+      color: #2d25ff; 
       margin-bottom: 5px;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -581,7 +581,7 @@ function generateFulfillmentEmail(orderData: OrderData): string {
       color: #fff;
       font-family: 'Space Mono', monospace;
     }
-    .urgency { background: rgba(255, 0, 255, 0.1); border: 2px solid #ff00ff; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+    .urgency { background: rgba(45, 37, 255, 0.1); border: 2px solid #2d25ff; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
   </style>
 </head>
 <body>
@@ -676,13 +676,13 @@ function generateFulfillmentEmail(orderData: OrderData): string {
           <span>Impuestos:</span>
           <span>$${taxUsd} USD</span>
         </div>
-        <div class="info-row" style="border-top: 2px solid #ff00ff; margin-top: 15px; padding-top: 20px; font-size: 28px; font-weight: 700; color: #ff00ff; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px;">
+        <div class="info-row" style="border-top: 2px solid #2d25ff; margin-top: 15px; padding-top: 20px; font-size: 28px; font-weight: 700; color: #2d25ff; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px;">
           <span>TOTAL:</span>
           <span>$${totalUsd} USD</span>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(255, 0, 255, 0.05); border-radius: 8px; border: 2px solid rgba(255, 0, 255, 0.3);">
+      <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(45, 37, 255, 0.05); border-radius: 8px; border: 2px solid rgba(45, 37, 255, 0.3);">
         <p style="margin: 0; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 1px; font-size: 14px; color: #64b5f6;">
           <strong>⚠️ ACCIÓN REQUERIDA:</strong>
         </p>
