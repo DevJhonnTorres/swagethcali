@@ -114,9 +114,9 @@ export default function CheckoutPage() {
         const totalCop = subtotal + shippingCop + taxCop;
 
         const lastOrder = {
-          orderId: payment.orderId || `ETH-${Date.now().toString().slice(-6)}`,
+          orderId: payment.id,
           paymentId: payment.id,
-          transactionHash: status.transactionHash,
+          transactionHash: undefined,
           items: cart.items,
           totals: {
             subtotal,
