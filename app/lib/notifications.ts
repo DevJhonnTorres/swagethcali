@@ -6,7 +6,8 @@
 import { Resend } from 'resend';
 import twilio from 'twilio';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Only create Resend client if API key is provided
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface OrderData {
   orderId: string;
@@ -28,7 +29,7 @@ interface OrderData {
  * Send order confirmation email to customer
  */
 export async function sendOrderConfirmationEmail(orderData: OrderData) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!resend || !process.env.RESEND_API_KEY) {
     console.log('📧 Email simulation (no API key configured):', orderData);
     return { success: true, id: 'simulated_email_id' };
   }
@@ -60,7 +61,7 @@ export async function sendOrderConfirmationEmail(orderData: OrderData) {
 export async function sendFulfillmentEmail(orderData: OrderData) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ecomerwiliwonka.com';
 
-  if (!process.env.RESEND_API_KEY) {
+  if (!resend || !process.env.RESEND_API_KEY) {
     console.log('📧 Fulfillment email simulation:', orderData);
     return { success: true, id: 'simulated_fulfillment_email_id' };
   }
