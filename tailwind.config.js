@@ -49,6 +49,7 @@ module.exports = {
         'bounce-slow': 'bounce 2s infinite',
         'gradient-shift': 'gradient-shift 8s ease infinite',
         'float': 'float 6s ease-in-out infinite',
+        'star-wars': 'star-wars 5s linear infinite',
       },
       keyframes: {
         fadeIn: {

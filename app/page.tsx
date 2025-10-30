@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Star, Users, Zap, Globe, Calendar, MapPin, GraduationCap } from 'lucide-react';
 import ProductGrid from '@/components/product/ProductGrid';
+import StarWarsBackground from '@/components/StarWarsBackground';
 import { SAMPLE_PRODUCTS } from '@/app/lib/constants';
 import { useScrollReveal } from '@/app/hooks/useScrollReveal';
 
@@ -123,8 +124,11 @@ export default function HomePage() {
 
       {/* Mission Section */}
       <section id="mission" ref={missionRef} className="py-12 sm:py-16 lg:py-24 bg-brand-black relative overflow-hidden scroll-reveal-blur">
+        {/* Star Wars Animation Background */}
+        <StarWarsBackground />
+        
         {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyber-blue/30 rounded-full animate-pulse"></div>
           <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-cyber-pink/40 rounded-full animate-ping"></div>
           <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-cyber-purple/30 rounded-full animate-bounce"></div>

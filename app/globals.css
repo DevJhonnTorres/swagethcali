@@ -375,6 +375,15 @@
       }
     }
 
+    @keyframes star-wars {
+      from {
+        transform: translateY(0) scale(0);
+      }
+      to {
+        transform: translateY(-100vh) scale(1.5);
+      }
+    }
+
     @keyframes spin-slow {
       0% {
         transform: rotate(0deg);
