@@ -70,10 +70,10 @@ export default function CheckoutPage() {
       });
       
       setPaymentStatus('¡Pago completado!');
-      setTxHash(status.transactionHash || '');
+      setTxHash('');
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
-      if (status.transactionHash) {
+      if (status.status === 'completed') {
         try {
           // Calculate totals for order data
           const shipping = cart.total > 200000 ? 0 : 15000;
@@ -88,7 +88,7 @@ export default function CheckoutPage() {
             body: JSON.stringify({
               orderId: payment.id, // using payment.id as order reference
               paymentId: payment.id,
-              transactionHash: status.transactionHash,
+              transactionHash: undefined,
               orderData: {
                 customerEmail: contactInfo.email,
                 customerName: contactInfo.name,
