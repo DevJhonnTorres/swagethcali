@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useScrollReveal } from '@/app/hooks/useScrollReveal';
 
 interface Star {
@@ -16,9 +16,7 @@ export default function StarWarsBackground() {
   const [stars, setStars] = useState<Star[]>([]);
   const [isRevealed, setIsRevealed] = useState(false);
   const [showHyperspace, setShowHyperspace] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  useScrollReveal(containerRef, {
+  const containerRef = useScrollReveal({
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px',
     onReveal: () => {
@@ -30,7 +28,7 @@ export default function StarWarsBackground() {
           setShowHyperspace(false);
         }, 2000);
       }
-    }
+    },
   });
 
   useEffect(() => {
