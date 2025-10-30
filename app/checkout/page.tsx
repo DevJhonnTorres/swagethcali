@@ -2,10 +2,19 @@
 
 import { useState } from 'react';
 import { useCart } from '@/app/contexts/CartContext';
-import CartSummary from '@/components/cart/CartSummary';
 import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { initiatePayment, pollPaymentStatus, formatUSDCAmount } from '@/app/lib/base-pay';
+import { formatPrice } from '@/app/lib/utils';
+
+interface ContactInfo {
+  email: string;
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+}
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
@@ -13,20 +22,41 @@ export default function CheckoutPage() {
   const [paymentStatus, setPaymentStatus] = useState<string>('');
   const [txHash, setTxHash] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'crypto' | 'card'>('crypto');
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    email: '',
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    country: '',
+  });
+  const [showPayment, setShowPayment] = useState(false);
 
   const handleBasePayPayment = async () => {
     setIsProcessing(true);
     setPaymentStatus('Iniciando pago...');
 
     try {
-      const totalAmount = cart.total / 100; // Convert from cents to dollars
+      // Calculate total with shipping and tax
+      const shipping = cart.total > 200000 ? 0 : 15000;
+      const tax = cart.total * 0.19;
+      const totalAmount = (cart.total + shipping + tax) / 100; // Convert from cents to dollars
       const formattedAmount = formatUSDCAmount(totalAmount);
 
-      // Initialize payment
+      console.log('💳 Starting payment:', {
+        amount: formattedAmount,
+        itemCount: cart.items.length,
+        totalCOP: cart.total,
+      });
+
+      // Initialize payment (creates order in backend)
       const payment = await initiatePayment({
         amount: formattedAmount,
         to: process.env.NEXT_PUBLIC_RECIPIENT_ADDRESS || '0x0000000000000000000000000000000000000000',
         testnet: process.env.NEXT_PUBLIC_TESTNET === 'true',
+        customerId: undefined, // TODO: Get from auth
+        items: cart.items, // Send cart items for order record
+        amountCop: cart.total, // Send total in COP for database
         payerInfo: {
           requests: [
             { type: 'email' },
@@ -42,6 +72,40 @@ export default function CheckoutPage() {
       setPaymentStatus('¡Pago completado!');
       setTxHash(status.transactionHash || '');
 
+      // Notify backend of payment confirmation
+      if (payment.orderId && status.transactionHash) {
+        try {
+          // Calculate totals for order data
+          const shipping = cart.total > 200000 ? 0 : 15000;
+          const tax = cart.total * 0.19;
+          const totalAmount = cart.total + shipping + tax;
+
+          await fetch('/api/payments/confirm', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderId: payment.orderId,
+              paymentId: payment.id,
+              transactionHash: status.transactionHash,
+              orderData: {
+                customerEmail: contactInfo.email,
+                customerName: contactInfo.name,
+                customerPhone: contactInfo.phone,
+                shippingAddress: `${contactInfo.address}, ${contactInfo.city}, ${contactInfo.country}`,
+                items: cart.items,
+                total: totalAmount,
+              },
+            }),
+          });
+          console.log('✅ Payment confirmed in backend');
+        } catch (error) {
+          console.error('⚠️ Failed to confirm payment in backend:', error);
+          // Continue even if backend confirmation fails
+        }
+      }
+
       // Wait a moment before redirecting
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
@@ -49,7 +113,7 @@ export default function CheckoutPage() {
       clearCart();
       window.location.href = '/order-confirmation';
     } catch (error) {
-      console.error('Error processing payment:', error);
+      console.error('❌ Error processing payment:', error);
       setPaymentStatus('Error en el pago. Por favor, inténtalo de nuevo.');
     } finally {
       setIsProcessing(false);
@@ -58,8 +122,9 @@ export default function CheckoutPage() {
 
   if (cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-brand-black flex items-center justify-center cyber-grid">
-        <div className="text-center max-w-md mx-auto px-4">
+      <div className="min-h-screen bg-brand-black flex items-center justify-center relative">
+        <div className="cyber-grid"></div>
+        <div className="text-center max-w-md mx-auto px-4 relative z-10">
           <h1 className="text-3xl font-heading font-bold text-cyber-blue mb-4">No hay productos en tu carrito</h1>
           <p className="text-text-secondary mb-8">
             Agrega algunos productos antes de proceder al pago
@@ -77,8 +142,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-black cyber-grid">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-brand-black relative">
+      <div className="cyber-grid"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -97,84 +163,211 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
-            <div className="bg-bg-card/80 backdrop-blur-sm rounded-xl shadow-lg border border-eth-gray/30 p-6">
-              <h2 className="text-xl font-heading font-semibold text-cyber-blue mb-6">
-                Información de Pago
-              </h2>
+            {/* Contact Information Form */}
+            {!showPayment && (
+              <div className="bg-bg-card/80 backdrop-blur-sm rounded-xl shadow-lg border border-eth-gray/30 p-6 mb-6">
+                <h2 className="text-xl font-heading font-semibold text-cyber-blue mb-6">
+                  Información de Contacto y Envío
+                </h2>
 
-              {/* Payment Method Selection */}
-              <div className="mb-8">
-                <h3 className="text-lg font-heading font-medium text-white mb-4">
-                  Método de Pago
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setPaymentMethod('crypto')}
-                    className={`p-4 border-2 rounded-lg transition-all ${
-                      paymentMethod === 'crypto'
-                        ? 'border-cyber-blue bg-cyber-blue/20 shadow-lg shadow-cyber-blue/20'
-                        : 'border-eth-gray/30 hover:border-cyber-blue/50 bg-bg-card/50'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Wallet className={`w-6 h-6 ${paymentMethod === 'crypto' ? 'text-cyber-blue' : 'text-cyber-purple'}`} />
-                      <div className="text-left">
-                        <div className={`font-medium ${paymentMethod === 'crypto' ? 'text-white' : 'text-text-secondary'}`}>Base Pay</div>
-                        <div className="text-sm text-text-secondary">USDC on Base</div>
-                      </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                        Nombre Completo *
+                      </label>
+                      <input
+                        type="text"
+                        value={contactInfo.name}
+                        onChange={(e) => setContactInfo({ ...contactInfo, name: e.target.value })}
+                        className="w-full px-4 py-2 bg-bg-card/50 border border-eth-gray/30 rounded-lg text-white placeholder-text-secondary focus:outline-none focus:border-cyber-blue focus:ring-2 focus:ring-cyber-blue/20"
+                        placeholder="Tu nombre"
+                        required
+                      />
                     </div>
-                  </button>
+
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={contactInfo.email}
+                        onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                        className="w-full px-4 py-2 bg-bg-card/50 border border-eth-gray/30 rounded-lg text-white placeholder-text-secondary focus:outline-none focus:border-cyber-blue focus:ring-2 focus:ring-cyber-blue/20"
+                        placeholder="tu@email.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      Teléfono *
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactInfo.phone}
+                      onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                      className="w-full px-4 py-2 bg-bg-card/50 border border-eth-gray/30 rounded-lg text-white placeholder-text-secondary focus:outline-none focus:border-cyber-blue focus:ring-2 focus:ring-cyber-blue/20"
+                      placeholder="+57 300 123 4567"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      Dirección *
+                    </label>
+                    <input
+                      type="text"
+                      value={contactInfo.address}
+                      onChange={(e) => setContactInfo({ ...contactInfo, address: e.target.value })}
+                      className="w-full px-4 py-2 bg-bg-card/50 border border-eth-gray/30 rounded-lg text-white placeholder-text-secondary focus:outline-none focus:border-cyber-blue focus:ring-2 focus:ring-cyber-blue/20"
+                      placeholder="Calle 123 #45-67"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                        Ciudad *
+                      </label>
+                      <input
+                        type="text"
+                        value={contactInfo.city}
+                        onChange={(e) => setContactInfo({ ...contactInfo, city: e.target.value })}
+                        className="w-full px-4 py-2 bg-bg-card/50 border border-eth-gray/30 rounded-lg text-white placeholder-text-secondary focus:outline-none focus:border-cyber-blue focus:ring-2 focus:ring-cyber-blue/20"
+                        placeholder="Cali"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                        País *
+                      </label>
+                      <input
+                        type="text"
+                        value={contactInfo.country}
+                        onChange={(e) => setContactInfo({ ...contactInfo, country: e.target.value })}
+                        className="w-full px-4 py-2 bg-bg-card/50 border border-eth-gray/30 rounded-lg text-white placeholder-text-secondary focus:outline-none focus:border-cyber-blue focus:ring-2 focus:ring-cyber-blue/20"
+                        placeholder="Colombia"
+                        required
+                      />
+                    </div>
+                  </div>
 
                   <button
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-4 border-2 rounded-lg transition-all ${
-                      paymentMethod === 'card'
-                        ? 'border-cyber-blue bg-cyber-blue/20 shadow-lg shadow-cyber-blue/20'
-                        : 'border-eth-gray/30 hover:border-cyber-blue/50 bg-bg-card/50'
-                    }`}
+                    onClick={() => {
+                      if (contactInfo.email && contactInfo.name && contactInfo.phone && contactInfo.address && contactInfo.city && contactInfo.country) {
+                        setShowPayment(true);
+                      }
+                    }}
+                    className="w-full btn-primary py-3 mt-6"
                   >
-                    <div className="flex items-center space-x-3">
-                      <CreditCard className={`w-6 h-6 ${paymentMethod === 'card' ? 'text-cyber-blue' : 'text-eth-gray'}`} />
-                      <div className="text-left">
-                        <div className={`font-medium ${paymentMethod === 'card' ? 'text-white' : 'text-text-secondary'}`}>Tarjeta</div>
-                        <div className="text-sm text-text-secondary">Próximamente</div>
-                      </div>
-                    </div>
+                    Continuar al Pago
                   </button>
                 </div>
               </div>
+            )}
 
-              {/* Crypto Payment */}
-              {paymentMethod === 'crypto' && (
-                <div className="space-y-6">
-                  <div className="bg-cyber-blue/10 border border-cyber-blue/30 rounded-lg p-6">
-                    <h4 className="font-heading text-lg text-cyber-blue mb-3 flex items-center gap-2">
-                      <Wallet className="w-5 h-5" />
-                      Base Pay - USDC
-                    </h4>
-                    <p className="text-text-secondary mb-4">
-                      Pago con USDC en Base. Confirma en menos de 2 segundos. Sin tarjetas ni comisiones adicionales.
-                    </p>
-                    
-                    <div className="space-y-2 text-sm bg-bg-card/50 p-4 rounded border border-eth-gray/20">
-                      <div className="flex justify-between items-center">
-                        <span className="text-text-secondary">Red:</span>
-                        <span className="font-medium text-cyber-blue">Base Network</span>
+            {/* Payment Method Selection */}
+            {showPayment && (
+              <div className="bg-bg-card/80 backdrop-blur-sm rounded-xl shadow-lg border border-eth-gray/30 p-6 mb-6">
+                <button
+                  onClick={() => setShowPayment(false)}
+                  className="text-cyber-blue hover:text-cyber-purple mb-4 inline-flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Volver a información de contacto</span>
+                </button>
+
+                <h2 className="text-xl font-heading font-semibold text-cyber-blue mb-6">
+                  Información de Pago
+                </h2>
+
+                <div className="mb-6 p-4 bg-cyber-blue/10 border border-cyber-blue/30 rounded-lg">
+                  <h3 className="font-medium text-white mb-2">Enviar a:</h3>
+                  <p className="text-text-secondary">{contactInfo.name}</p>
+                  <p className="text-text-secondary">{contactInfo.email}</p>
+                  <p className="text-text-secondary">{contactInfo.address}, {contactInfo.city}, {contactInfo.country}</p>
+                </div>
+
+                {/* Payment Method Selection */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-heading font-medium text-white mb-4">
+                    Método de Pago
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setPaymentMethod('crypto')}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        paymentMethod === 'crypto'
+                          ? 'border-cyber-blue bg-cyber-blue/20 shadow-lg shadow-cyber-blue/20'
+                          : 'border-eth-gray/30 hover:border-cyber-blue/50 bg-bg-card/50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Wallet className={`w-6 h-6 ${paymentMethod === 'crypto' ? 'text-cyber-blue' : 'text-cyber-purple'}`} />
+                        <div className="text-left">
+                          <div className={`font-medium ${paymentMethod === 'crypto' ? 'text-white' : 'text-text-secondary'}`}>Base Pay</div>
+                          <div className="text-sm text-text-secondary">USDC on Base</div>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-text-secondary">Token:</span>
-                        <span className="font-medium text-cyber-blue">USDC</span>
+                    </button>
+
+                    <button
+                      onClick={() => setPaymentMethod('card')}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        paymentMethod === 'card'
+                          ? 'border-cyber-blue bg-cyber-blue/20 shadow-lg shadow-cyber-blue/20'
+                          : 'border-eth-gray/30 hover:border-cyber-blue/50 bg-bg-card/50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <CreditCard className={`w-6 h-6 ${paymentMethod === 'card' ? 'text-cyber-blue' : 'text-eth-gray'}`} />
+                        <div className="text-left">
+                          <div className={`font-medium ${paymentMethod === 'card' ? 'text-white' : 'text-text-secondary'}`}>Tarjeta</div>
+                          <div className="text-sm text-text-secondary">Próximamente</div>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-text-secondary">Tiempo:</span>
-                        <span className="font-medium text-cyber-green">~2 segundos</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-text-secondary">Gas:</span>
-                        <span className="font-medium text-cyber-green">Patrocinado</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Crypto Payment */}
+                {paymentMethod === 'crypto' && (
+                  <div className="space-y-6">
+                    <div className="bg-cyber-blue/10 border border-cyber-blue/30 rounded-lg p-6">
+                      <h4 className="font-heading text-lg text-cyber-blue mb-3 flex items-center gap-2">
+                        <Wallet className="w-5 h-5" />
+                        Base Pay - USDC
+                      </h4>
+                      <p className="text-text-secondary mb-4">
+                        Pago con USDC en Base. Confirma en menos de 2 segundos. Sin tarjetas ni comisiones adicionales.
+                      </p>
+                      
+                      <div className="space-y-2 text-sm bg-bg-card/50 p-4 rounded border border-eth-gray/20">
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Red:</span>
+                          <span className="font-medium text-cyber-blue">Base Network</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Token:</span>
+                          <span className="font-medium text-cyber-blue">USDC</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Tiempo:</span>
+                          <span className="font-medium text-cyber-green">~2 segundos</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Gas:</span>
+                          <span className="font-medium text-cyber-green">Patrocinado</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
                   {/* Base Pay Button with cyberpunk style */}
                   <button
@@ -226,28 +419,82 @@ export default function CheckoutPage() {
                       )}
                     </div>
                   )}
-                </div>
-              )}
+                  </div>
+                )}
 
               {/* Card Payment (Coming Soon) */}
-              {paymentMethod === 'card' && (
-                <div className="bg-bg-card/30 border border-eth-gray/30 rounded-lg p-8 text-center">
-                  <CreditCard className="w-12 h-12 text-eth-gray mx-auto mb-4" />
-                  <h3 className="text-lg font-heading font-medium text-white mb-2">
-                    Pago con Tarjeta
-                  </h3>
-                  <p className="text-text-secondary">
-                    Esta opción estará disponible próximamente. 
-                    Por ahora, utiliza el pago con Base Pay.
-                  </p>
-                </div>
-              )}
-            </div>
+                {paymentMethod === 'card' && (
+                  <div className="bg-bg-card/30 border border-eth-gray/30 rounded-lg p-8 text-center">
+                    <CreditCard className="w-12 h-12 text-eth-gray mx-auto mb-4" />
+                    <h3 className="text-lg font-heading font-medium text-white mb-2">
+                      Pago con Tarjeta
+                    </h3>
+                    <p className="text-text-secondary">
+                      Esta opción estará disponible próximamente. 
+                      Por ahora, utiliza el pago con Base Pay.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <CartSummary cart={cart} />
+            <div className="bg-bg-card/80 backdrop-blur-sm rounded-xl shadow-lg border border-eth-gray/30 p-6 sticky top-4">
+              <h3 className="text-lg font-heading font-semibold text-cyber-blue mb-4">
+                Resumen del Pedido
+              </h3>
+
+              <div className="space-y-3 mb-6">
+                {/* Subtotal */}
+                <div className="flex justify-between items-center">
+                  <span className="text-text-secondary">Subtotal</span>
+                  <span className="font-medium text-white">{formatPrice(cart.total)}</span>
+                </div>
+
+                {/* Shipping */}
+                <div className="flex justify-between items-center">
+                  <span className="text-text-secondary">Envío</span>
+                  <span className="font-medium">
+                    {cart.total > 200000 ? (
+                      <span className="text-cyber-green">Gratis</span>
+                    ) : (
+                      <span className="text-white">{formatPrice(15000)}</span>
+                    )}
+                  </span>
+                </div>
+
+                {/* Tax */}
+                <div className="flex justify-between items-center">
+                  <span className="text-text-secondary">IVA (19%)</span>
+                  <span className="font-medium text-white">{formatPrice(cart.total * 0.19)}</span>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-eth-gray/30 my-3"></div>
+
+                {/* Total */}
+                <div className="flex justify-between text-xl font-heading font-bold">
+                  <span className="text-white">Total</span>
+                  <span className="text-cyber-blue">{formatPrice(cart.total + (cart.total > 200000 ? 0 : 15000) + cart.total * 0.19)}</span>
+                </div>
+              </div>
+
+              {/* Payment Methods Info */}
+              <div className="text-center space-y-2">
+                <p className="text-sm text-text-secondary">Paga con USDC en Base</p>
+                <div className="flex justify-center space-x-2">
+                  <div className="bg-cyber-blue/20 border border-cyber-blue/30 px-3 py-1 rounded text-xs font-medium text-cyber-blue">
+                    Base Network
+                  </div>
+                  <div className="bg-cyber-purple/20 border border-cyber-purple/30 px-3 py-1 rounded text-xs font-medium text-cyber-purple">
+                    USDC
+                  </div>
+                </div>
+                <p className="text-xs text-cyber-green pt-1">~2 segundos • Gas gratis</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -72,8 +72,8 @@ export default function CartSummary({ cart }: CartSummaryProps) {
       </Link>
 
       {/* Payment Methods */}
-      <div className="mt-4 text-center">
-        <p className="text-sm text-text-secondary mb-2">Paga con USDC en Base</p>
+      <div className="mt-4 text-center space-y-2">
+        <p className="text-sm text-text-secondary">Paga con USDC en Base</p>
         <div className="flex justify-center space-x-2">
           <div className="bg-cyber-blue/20 border border-cyber-blue/30 px-3 py-1 rounded text-xs font-medium text-cyber-blue">
             Base Network
@@ -82,7 +82,7 @@ export default function CartSummary({ cart }: CartSummaryProps) {
             USDC
           </div>
         </div>
-        <p className="text-xs text-cyber-green mt-2">~2 segundos • Gas gratis</p>
+        <p className="text-xs text-cyber-green pt-1">~2 segundos • Gas gratis</p>
       </div>
     </div>
   );

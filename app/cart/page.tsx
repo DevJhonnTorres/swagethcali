@@ -11,30 +11,34 @@ export default function CartPage() {
 
   if (cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-brand-black flex items-center justify-center cyber-grid">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="w-24 h-24 bg-cyber-blue/20 border border-cyber-blue/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShoppingBag className="w-12 h-12 text-cyber-blue" />
+      <div className="min-h-screen bg-brand-black relative flex flex-col">
+        <div className="cyber-grid"></div>
+        <div className="flex-grow flex items-center justify-center py-20 relative z-10">
+          <div className="text-center max-w-md mx-auto px-4">
+            <div className="w-24 h-24 bg-cyber-blue/20 border border-cyber-blue/30 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-glow">
+              <ShoppingBag className="w-12 h-12 text-cyber-blue" />
+            </div>
+            <h1 className="text-3xl font-heading font-bold text-cyber-blue mb-4">Tu carrito está vacío</h1>
+            <p className="text-text-secondary mb-8">
+              Agrega algunos productos increíbles de ETH Cali a tu carrito
+            </p>
+            <Link
+              href="/catalog"
+              className="btn-primary inline-flex items-center space-x-2 hover:scale-105 transition-transform duration-200"
+            >
+              <span>Explorar Catálogo</span>
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
           </div>
-          <h1 className="text-3xl font-heading font-bold text-cyber-blue mb-4">Tu carrito está vacío</h1>
-          <p className="text-text-secondary mb-8">
-            Agrega algunos productos increíbles de ETH Cali a tu carrito
-          </p>
-          <Link
-            href="/catalog"
-            className="btn-primary inline-flex items-center space-x-2"
-          >
-            <span>Explorar Catálogo</span>
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-black cyber-grid">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-brand-black relative">
+      <div className="cyber-grid"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <Link

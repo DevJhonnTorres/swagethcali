@@ -198,11 +198,23 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section ref={ctaRef} className="py-12 sm:py-16 lg:py-24 bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink relative overflow-hidden scroll-reveal-blur">
-        {/* Portal effect */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyber-blue/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      <section ref={ctaRef} className="py-12 sm:py-16 lg:py-24 relative overflow-hidden scroll-reveal-blur">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 opacity-60">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink animate-gradient-shift" style={{
+            backgroundSize: '200% 200%',
+          }}></div>
+        </div>
+        
+        {/* Top and bottom fade gradients */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-brand-black to-transparent z-[1]"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-black to-transparent z-[1]"></div>
+        
+        {/* Animated portal effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyber-blue/30 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyber-purple/30 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyber-pink/20 rounded-full blur-2xl animate-pulse"></div>
         </div>
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-[2]">

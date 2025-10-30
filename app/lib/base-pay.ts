@@ -8,6 +8,9 @@ export interface PaymentRequest {
   amount: string;
   to: string;
   testnet?: boolean;
+  customerId?: string;
+  items?: any[];
+  amountCop?: number;
   payerInfo?: {
     requests: Array<{
       type: string;
@@ -19,6 +22,7 @@ export interface PaymentRequest {
 
 export interface PaymentResponse {
   id: string;
+  orderId?: string;
   status: string;
   payerInfoResponses?: {
     email?: string;

@@ -184,6 +184,22 @@
     background-size: 50px 50px;
     animation: grid-move 20s linear infinite;
     z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Static Cyber Grid - No animation */
+  .cyber-grid-static {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(rgba(98, 104, 143, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(98, 104, 143, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+    pointer-events: none;
   }
 
   /* Cyber Line */
@@ -347,6 +363,15 @@
       }
       100% {
         transform: translateY(0);
+      }
+    }
+
+    @keyframes gradient-shift {
+      0%, 100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
       }
     }
 
@@ -538,18 +563,17 @@
 
     .scroll-reveal {
       opacity: 0;
-      transition: all 0.4s ease-out;
+      transition: opacity 0.3s ease-out;
     }
 
     .scroll-reveal.revealed {
       opacity: 1;
-      transform: translateY(0);
     }
 
     .scroll-reveal-up {
       opacity: 0;
-      transform: translateY(60px);
-      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform: translateY(20px);
+      transition: all 0.3s ease-out;
     }
 
     .scroll-reveal-up.revealed {
@@ -559,8 +583,8 @@
 
     .scroll-reveal-down {
       opacity: 0;
-      transform: translateY(-60px);
-      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform: translateY(-20px);
+      transition: all 0.3s ease-out;
     }
 
     .scroll-reveal-down.revealed {
@@ -570,8 +594,8 @@
 
     .scroll-reveal-scale {
       opacity: 0;
-      transform: scale(0.8);
-      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform: scale(0.95);
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
     }
 
     .scroll-reveal-scale.revealed {
@@ -581,8 +605,8 @@
 
     .scroll-reveal-blur {
       opacity: 0;
-      filter: blur(10px);
-      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      filter: blur(5px);
+      transition: opacity 0.3s ease-out, filter 0.3s ease-out;
     }
 
     .scroll-reveal-blur.revealed {
