@@ -5,7 +5,7 @@ import { useCart } from '@/app/contexts/CartContext';
 import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 // Base Pay SDK (real payments)
-import { pay, getPaymentStatus } from '@base-org/account';
+import { pay } from '@base-org/account';
 import { formatUSDCAmount } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
 
@@ -62,51 +62,45 @@ export default function CheckoutPage() {
 
       setPaymentStatus('Esperando confirmación en la red...');
 
-      // 2) Poll until mined (testnet flag MUST match)
-      const status = await getPaymentStatus({
-        id: payment.id,
-        testnet: process.env.NEXT_PUBLIC_TESTNET === 'true',
-      });
+      console.log('✅ Payment initiated:', { paymentId: payment.id });
       
       setPaymentStatus('¡Pago completado!');
-      // Extract transaction hash from status.id (the SDK returns id as the tx hash)
-      const txHash = status.id || '';
+      // payment.id IS the transaction hash according to the docs
+      const txHash = payment.id || '';
       setTxHash(txHash);
 
-      console.log('✅ Payment completed:', { status: status.status, txHash });
+      console.log('✅ Payment completed:', { txHash });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
-      if (status.status === 'completed') {
-        try {
-          // Calculate totals for order data
-          const shipping = cart.total > 200000 ? 0 : 15000;
-          const tax = cart.total * 0.19;
-          const totalAmount = cart.total + shipping + tax;
+      try {
+        // Calculate totals for order data
+        const shipping = cart.total > 200000 ? 0 : 15000;
+        const tax = cart.total * 0.19;
+        const totalAmount = cart.total + shipping + tax;
 
-          await fetch('/api/payments/confirm', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+        await fetch('/api/payments/confirm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderId: payment.id, // using payment.id as order reference
+            paymentId: payment.id,
+            transactionHash: txHash,
+            orderData: {
+              customerEmail: contactInfo.email,
+              customerName: contactInfo.name,
+              customerPhone: contactInfo.phone,
+              shippingAddress: `${contactInfo.address}, ${contactInfo.city}, ${contactInfo.country}`,
+              items: cart.items,
+              total: totalAmount,
             },
-            body: JSON.stringify({
-              orderId: payment.id, // using payment.id as order reference
-              paymentId: payment.id,
-              transactionHash: txHash,
-              orderData: {
-                customerEmail: contactInfo.email,
-                customerName: contactInfo.name,
-                customerPhone: contactInfo.phone,
-                shippingAddress: `${contactInfo.address}, ${contactInfo.city}, ${contactInfo.country}`,
-                items: cart.items,
-                total: totalAmount,
-              },
-            }),
-          });
-          console.log('✅ Payment confirmed in backend');
-        } catch (error) {
-          console.error('⚠️ Failed to confirm payment in backend:', error);
-          // Continue even if backend confirmation fails
-        }
+          }),
+        });
+        console.log('✅ Payment confirmed in backend');
+      } catch (error) {
+        console.error('⚠️ Failed to confirm payment in backend:', error);
+        // Continue even if backend confirmation fails
       }
 
       // Persist order locally to show details in confirmation page
