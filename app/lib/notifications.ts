@@ -44,7 +44,7 @@ export async function sendOrderConfirmationEmail(orderData: OrderData) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Ecomer Wiliwonka <onboarding@resend.dev>',
+      from: 'ETH Cali Swag <onboarding@resend.dev>',
       to: orderData.customerEmail,
       subject: `Confirmación de Pedido #${orderData.orderId}`,
       html: generateOrderConfirmationEmail(orderData),
@@ -76,7 +76,7 @@ export async function sendFulfillmentEmail(orderData: OrderData) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Ecomer Wiliwonka <onboarding@resend.dev>',
+      from: 'ETH Cali Swag <onboarding@resend.dev>',
       to: adminEmail,
       subject: `📦 Nueva Orden para Procesar #${orderData.orderId}`,
       html: generateFulfillmentEmail(orderData),
@@ -329,7 +329,7 @@ function generateOrderConfirmationEmail(orderData: OrderData): string {
     </div>
     <div class="content">
       <p>Hola <strong>${orderData.customerName || 'Cliente'}</strong>,</p>
-      <p>Tu orden ha sido confirmada y está siendo procesada. Gracias por tu compra en Ecomer Wiliwonka! 🎉</p>
+      <p>Tu orden ha sido confirmada y está siendo procesada. Gracias por tu compra en ETH Cali Swag! 🎉</p>
       
       <div class="order-number">
         <strong>🆔 Orden #${orderData.orderId}</strong>
@@ -389,7 +389,7 @@ function generateOrderConfirmationEmail(orderData: OrderData): string {
 
       <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #00d4ff50; text-align: center;">
         Te notificaremos cuando tu pedido esté en camino. 🚀<br>
-        <small style="color: #888;">¿Preguntas? Escríbenos a info@ecomerwiliwonka.com</small>
+        <small style="color: #888;">¿Preguntas? Escríbenos a info@ethcali.org</small>
       </p>
     </div>
   </div>
