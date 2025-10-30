@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useScrollReveal } from '@/app/hooks/useScrollReveal';
 
 interface Star {
   id: number;
@@ -13,6 +14,24 @@ interface Star {
 
 export default function StarWarsBackground() {
   const [stars, setStars] = useState<Star[]>([]);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [showHyperspace, setShowHyperspace] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  useScrollReveal(containerRef, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px',
+    onReveal: () => {
+      if (!isRevealed) {
+        setIsRevealed(true);
+        setShowHyperspace(true);
+        // Hide hyperspace after 2 seconds
+        setTimeout(() => {
+          setShowHyperspace(false);
+        }, 2000);
+      }
+    }
+  });
 
   useEffect(() => {
     // Generate random stars
@@ -32,6 +51,7 @@ export default function StarWarsBackground() {
 
   return (
     <div 
+      ref={containerRef}
       className="absolute inset-0 overflow-hidden pointer-events-none"
       style={{
         perspective: '1000px',
@@ -47,8 +67,10 @@ export default function StarWarsBackground() {
             top: `${star.y}%`,
             width: `${star.size}px`,
             height: `${star.size}px`,
-            animation: `star-wars ${star.duration}s linear infinite`,
-            animationDelay: `${star.delay}s`,
+            animation: showHyperspace 
+              ? `hyperspace-jump 0.6s linear infinite`
+              : `star-wars ${star.duration}s linear infinite`,
+            animationDelay: showHyperspace ? '0s' : `${star.delay}s`,
             boxShadow: `0 0 ${star.size * 2}px rgba(255, 255, 255, 0.8)`,
             transformOrigin: 'center center',
           }}
