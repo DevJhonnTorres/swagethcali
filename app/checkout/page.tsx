@@ -39,18 +39,14 @@ export default function CheckoutPage() {
     setPaymentStatus('Iniciando pago...');
 
     try {
-      // Calculate totals in COP
-      const subtotalCop = cart.total;
-      const shippingCop = cart.total > 200000 ? 0 : 15000;
-      const taxCop = Math.round(cart.total * 0.19);
-      const totalCop = subtotalCop + shippingCop + taxCop;
-      
-      // Convert COP to USD (approximate rate: 1 USD = 4200 COP)
-      const USD_RATE = 4200;
-      const totalUsd = totalCop / USD_RATE;
+      // Calculate totals in USD (cart.total is already in cents)
+      const subtotalUsd = cart.total / 100; // Convert cents to dollars
+      const shippingUsd = subtotalUsd > 200 ? 0 : 15; // Free shipping over $200
+      const taxUsd = subtotalUsd * 0.19;
+      const totalUsd = subtotalUsd + shippingUsd + taxUsd;
       const formattedAmount = formatUSDCAmount(totalUsd);
 
-      console.log('💳 Starting payment (Base Pay SDK):', { totalCop, totalUsd, formattedAmount });
+      console.log('💳 Starting payment (Base Pay SDK):', { subtotalUsd, shippingUsd, taxUsd, totalUsd, formattedAmount });
 
       // 1) Open Base Pay and request payment
       const payment = await pay({
@@ -113,10 +109,11 @@ export default function CheckoutPage() {
 
       // Persist order locally to show details in confirmation page
       try {
-        const subtotal = cart.total;
-        const shippingCop = cart.total > 200000 ? 0 : 15000;
-        const taxCop = Math.round(cart.total * 0.19);
-        const totalCop = subtotal + shippingCop + taxCop;
+        // Totals are in cents for consistency with cart
+        const subtotalCents = cart.total;
+        const shippingCents = subtotalCents > 20000 ? 0 : 1500; // Free over $200
+        const taxCents = Math.round(cart.total * 0.19);
+        const totalCents = subtotalCents + shippingCents + taxCents;
 
         const lastOrder = {
           orderId: payment.id,
@@ -124,10 +121,10 @@ export default function CheckoutPage() {
           transactionHash: undefined,
           items: cart.items,
           totals: {
-            subtotal,
-            shipping: shippingCop,
-            tax: taxCop,
-            total: totalCop,
+            subtotal: subtotalCents,
+            shipping: shippingCents,
+            tax: taxCents,
+            total: totalCents,
           },
           customer: {
             name: contactInfo.name,
@@ -495,18 +492,18 @@ export default function CheckoutPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-text-secondary">Envío</span>
                   <span className="font-medium">
-                    {cart.total > 200000 ? (
+                    {(cart.total / 100) > 200 ? (
                       <span className="text-cyber-green">Gratis</span>
                     ) : (
-                      <span className="text-white">{formatPrice(15000)}</span>
+                      <span className="text-white">{formatPrice(1500)}</span>
                     )}
                   </span>
                 </div>
 
                 {/* Tax */}
                 <div className="flex justify-between items-center">
-                  <span className="text-text-secondary">IVA (19%)</span>
-                  <span className="font-medium text-white">{formatPrice(cart.total * 0.19)}</span>
+                  <span className="text-text-secondary">Tax</span>
+                  <span className="font-medium text-white">{formatPrice(Math.round(cart.total * 0.19))}</span>
                 </div>
 
                 {/* Divider */}
@@ -515,7 +512,7 @@ export default function CheckoutPage() {
                 {/* Total */}
                 <div className="flex justify-between text-xl font-heading font-bold">
                   <span className="text-white">Total</span>
-                  <span className="text-cyber-blue">{formatPrice(cart.total + (cart.total > 200000 ? 0 : 15000) + cart.total * 0.19)}</span>
+                  <span className="text-cyber-blue">{formatPrice(cart.total + ((cart.total / 100) > 200 ? 0 : 1500) + Math.round(cart.total * 0.19))}</span>
                 </div>
               </div>
 
