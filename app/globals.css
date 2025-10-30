@@ -418,6 +418,25 @@
       }
     }
 
+    /* Success check draw animations */
+    @keyframes check-circle-draw {
+      0% { stroke-dashoffset: 565; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes check-mark-draw {
+      0% { stroke-dashoffset: 100; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes check-pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      60% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    .check-animate-pop { animation: check-pop 500ms ease-out forwards; }
+    .check-animate-circle { stroke-dasharray: 565; stroke-dashoffset: 565; animation: check-circle-draw 700ms ease-out forwards 150ms; }
+    .check-animate-mark { stroke-dasharray: 100; stroke-dashoffset: 100; animation: check-mark-draw 500ms ease-out forwards 650ms; }
+
     @keyframes pulse-glow {
       0%, 100% {
         opacity: 0.3;
