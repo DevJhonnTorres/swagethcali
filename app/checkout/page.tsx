@@ -39,13 +39,18 @@ export default function CheckoutPage() {
     setPaymentStatus('Iniciando pago...');
 
     try {
-      // Calculate total with shipping and tax
-      const shipping = cart.total > 200000 ? 0 : 15000;
-      const tax = cart.total * 0.19;
-      const totalAmount = (cart.total + shipping + tax) / 100; // Convert from cents to dollars
-      const formattedAmount = formatUSDCAmount(totalAmount);
+      // Calculate totals in COP
+      const subtotalCop = cart.total;
+      const shippingCop = cart.total > 200000 ? 0 : 15000;
+      const taxCop = Math.round(cart.total * 0.19);
+      const totalCop = subtotalCop + shippingCop + taxCop;
+      
+      // Convert COP to USD (approximate rate: 1 USD = 4200 COP)
+      const USD_RATE = 4200;
+      const totalUsd = totalCop / USD_RATE;
+      const formattedAmount = formatUSDCAmount(totalUsd);
 
-      console.log('💳 Starting payment (Base Pay SDK):', { formattedAmount });
+      console.log('💳 Starting payment (Base Pay SDK):', { totalCop, totalUsd, formattedAmount });
 
       // 1) Open Base Pay and request payment
       const payment = await pay({
