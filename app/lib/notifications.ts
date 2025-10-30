@@ -150,25 +150,176 @@ function generateOrderConfirmationEmail(orderData: OrderData): string {
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border-radius: 12px; overflow: hidden; border: 2px solid #00d4ff; }
-    .header { background: linear-gradient(135deg, #00d4ff, #9d4edd); padding: 30px; text-align: center; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&display=swap');
+    body { 
+      font-family: 'Space Mono', monospace; 
+      background: #0c0c11; 
+      color: #fff; 
+      padding: 20px; 
+      line-height: 1.6;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      background: rgba(20, 20, 20, 0.95); 
+      border-radius: 12px; 
+      overflow: hidden; 
+      border: 2px solid #2d25ff;
+      box-shadow: 0 0 20px rgba(45, 37, 255, 0.3);
+    }
+    .header { 
+      background: linear-gradient(135deg, #2d25ff, #6e68ff); 
+      padding: 40px 30px; 
+      text-align: center; 
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px);
+      pointer-events: none;
+    }
+    .header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 28px;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
     .content { padding: 30px; }
-    .order-number { background: #00d4ff20; border: 1px solid #00d4ff; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
-    .info-section { background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #00d4ff50; }
-    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
-    .info-row:last-child { border-bottom: none; }
+    .order-number { 
+      background: rgba(45, 37, 255, 0.1); 
+      border: 2px solid #2d25ff; 
+      padding: 20px; 
+      border-radius: 8px; 
+      text-align: center; 
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(45, 37, 255, 0.2);
+    }
+    .order-number strong {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      color: #2d25ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .info-section { 
+      background: rgba(30, 30, 30, 0.5); 
+      padding: 20px; 
+      border-radius: 8px; 
+      margin-bottom: 20px; 
+      border: 1px solid rgba(45, 37, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    .info-section h3 {
+      font-family: 'Orbitron', sans-serif;
+      color: #64b5f6;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 0 15px 0;
+    }
     .product-list { margin: 20px 0; }
-    .product-item { display: flex; align-items: center; padding: 15px; background: #252525; border-radius: 8px; margin-bottom: 10px; border: 1px solid #00d4ff50; }
-    .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; margin-right: 15px; }
+    .product-item { 
+      display: flex; 
+      align-items: center; 
+      padding: 20px; 
+      background: rgba(20, 20, 20, 0.8); 
+      border-radius: 8px; 
+      margin-bottom: 15px; 
+      border: 1px solid rgba(45, 37, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    .product-item:hover {
+      border-color: #2d25ff;
+      box-shadow: 0 0 15px rgba(45, 37, 255, 0.2);
+    }
+    .product-image { 
+      width: 80px; 
+      height: 80px; 
+      object-fit: cover; 
+      border-radius: 6px; 
+      margin-right: 15px;
+      border: 2px solid #2d25ff;
+    }
     .product-details { flex: 1; }
-    .product-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-    .product-category { font-size: 12px; color: #888; margin-bottom: 5px; }
-    .product-price { font-size: 14px; color: #00d4ff; }
-    .total-section { background: #252525; padding: 20px; border-radius: 8px; border: 1px solid #00d4ff50; }
-    .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
-    .total-row.final { border-top: 2px solid #00d4ff; margin-top: 10px; padding-top: 15px; font-size: 24px; font-weight: bold; color: #00d4ff; }
-    .transaction-link { display: inline-block; background: #00d4ff; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; margin-top: 15px; }
+    .product-name { 
+      font-size: 16px; 
+      font-weight: 700; 
+      margin-bottom: 5px; 
+      color: #fff;
+    }
+    .product-category { 
+      font-size: 12px; 
+      color: #8a92b2; 
+      margin-bottom: 5px; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .product-price { 
+      font-size: 14px; 
+      color: #2d25ff; 
+      font-weight: 700;
+    }
+    .total-section { 
+      background: rgba(20, 20, 20, 0.8); 
+      padding: 25px; 
+      border-radius: 8px; 
+      border: 2px solid rgba(45, 37, 255, 0.3);
+    }
+    .total-section h3 {
+      font-family: 'Orbitron', sans-serif;
+      color: #64b5f6;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 0 15px 0;
+    }
+    .total-row { 
+      display: flex; 
+      justify-content: space-between; 
+      padding: 10px 0; 
+      font-family: 'Space Mono', monospace;
+    }
+    .total-row.final { 
+      border-top: 2px solid #2d25ff; 
+      margin-top: 15px; 
+      padding-top: 20px; 
+      font-size: 28px; 
+      font-weight: 700; 
+      color: #2d25ff;
+      font-family: 'Orbitron', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .transaction-link { 
+      display: inline-block; 
+      background: linear-gradient(135deg, #2d25ff, #6e68ff); 
+      color: white; 
+      padding: 12px 24px; 
+      border-radius: 8px; 
+      text-decoration: none; 
+      margin-top: 15px; 
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(45, 37, 255, 0.3);
+    }
+    .transaction-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(45, 37, 255, 0.5);
+    }
   </style>
 </head>
 <body>
@@ -261,28 +412,176 @@ function generateFulfillmentEmail(orderData: OrderData): string {
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; padding: 20px; }
-    .container { max-width: 700px; margin: 0 auto; background: #1a1a1a; border-radius: 12px; overflow: hidden; border: 2px solid #ff006e; }
-    .header { background: linear-gradient(135deg, #ff006e, #9d4edd); padding: 30px; text-align: center; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&display=swap');
+    body { 
+      font-family: 'Space Mono', monospace; 
+      background: #0c0c11; 
+      color: #fff; 
+      padding: 20px; 
+      line-height: 1.6;
+    }
+    .container { 
+      max-width: 700px; 
+      margin: 0 auto; 
+      background: rgba(20, 20, 20, 0.95); 
+      border-radius: 12px; 
+      overflow: hidden; 
+      border: 2px solid #ff00ff;
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+    }
+    .header { 
+      background: linear-gradient(135deg, #ff00ff, #9900ff); 
+      padding: 40px 30px; 
+      text-align: center; 
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px);
+      pointer-events: none;
+    }
+    .header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 28px;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
     .content { padding: 30px; }
-    .order-info { background: #ff006e20; border: 1px solid #ff006e; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-    .section-title { color: #ff006e; font-size: 18px; margin-top: 25px; margin-bottom: 15px; border-bottom: 2px solid #ff006e; padding-bottom: 8px; }
-    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
+    .urgency { 
+      background: rgba(255, 0, 255, 0.1); 
+      border: 2px solid #ff00ff; 
+      padding: 20px; 
+      border-radius: 8px; 
+      margin: 20px 0; 
+      text-align: center;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+    }
+    .urgency h2 {
+      font-family: 'Orbitron', sans-serif;
+      color: #ff00ff;
+      margin: 0;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .order-info { 
+      background: rgba(255, 0, 255, 0.1); 
+      border: 2px solid #ff00ff; 
+      padding: 20px; 
+      border-radius: 8px; 
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+    }
+    .order-info h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      color: #ff00ff;
+      margin: 0 0 15px 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .section-title { 
+      font-family: 'Orbitron', sans-serif;
+      color: #64b5f6; 
+      font-size: 18px; 
+      margin-top: 25px; 
+      margin-bottom: 15px; 
+      border-bottom: 2px solid #64b5f6; 
+      padding-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .info-row { 
+      display: flex; 
+      justify-content: space-between; 
+      padding: 10px 0; 
+      border-bottom: 1px solid rgba(138, 146, 178, 0.3);
+      font-family: 'Space Mono', monospace;
+    }
     .info-row:last-child { border-bottom: none; }
     .product-list { margin: 20px 0; }
-    .product-item { padding: 20px; background: #252525; border-radius: 8px; margin-bottom: 15px; border: 2px solid #ff006e50; }
+    .product-item { 
+      padding: 20px; 
+      background: rgba(20, 20, 20, 0.8); 
+      border-radius: 8px; 
+      margin-bottom: 15px; 
+      border: 2px solid rgba(255, 0, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    .product-item:hover {
+      border-color: #ff00ff;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+    }
     .product-header { display: flex; align-items: start; margin-bottom: 15px; }
-    .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; margin-right: 15px; }
+    .product-image { 
+      width: 80px; 
+      height: 80px; 
+      object-fit: cover; 
+      border-radius: 6px; 
+      margin-right: 15px;
+      border: 2px solid #ff00ff;
+    }
     .product-details { flex: 1; }
-    .product-name { font-size: 18px; font-weight: bold; color: #ff006e; margin-bottom: 5px; }
-    .product-id { font-size: 12px; color: #888; margin-bottom: 10px; }
-    .product-description { font-size: 14px; color: #ccc; margin-bottom: 15px; line-height: 1.5; }
-    .product-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-    .spec-item { padding: 10px; background: #1a1a1a; border-radius: 6px; border: 1px solid #333; }
-    .spec-label { font-size: 11px; color: #888; margin-bottom: 5px; }
-    .spec-value { font-size: 14px; font-weight: bold; color: #fff; }
-    .action-btn { display: inline-block; background: #ff006e; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; margin-top: 20px; font-weight: bold; }
-    .urgency { background: #ff006e20; border: 2px solid #ff006e; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+    .product-name { 
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px; 
+      font-weight: 700; 
+      color: #ff00ff; 
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .product-id { 
+      font-size: 12px; 
+      color: #8a92b2; 
+      margin-bottom: 10px;
+      font-family: 'Space Mono', monospace;
+    }
+    .product-description { 
+      font-size: 14px; 
+      color: #b0b0b0; 
+      margin-bottom: 15px; 
+      line-height: 1.5;
+      font-family: 'Space Mono', monospace;
+    }
+    .product-specs { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px; 
+      margin-top: 15px; 
+    }
+    .spec-item { 
+      padding: 15px; 
+      background: rgba(12, 12, 17, 0.8); 
+      border-radius: 6px; 
+      border: 1px solid rgba(45, 37, 255, 0.3);
+    }
+    .spec-label { 
+      font-size: 11px; 
+      color: #8a92b2; 
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+    .spec-value { 
+      font-size: 14px; 
+      font-weight: 700; 
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+    }
+    .urgency { background: rgba(255, 0, 255, 0.1); border: 2px solid #ff00ff; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
   </style>
 </head>
 <body>
@@ -364,7 +663,7 @@ function generateFulfillmentEmail(orderData: OrderData): string {
       </div>
 
       <h3 class="section-title">💰 RESUMEN FINANCIERO</h3>
-      <div style="background: #252525; padding: 20px; border-radius: 8px; border: 1px solid #ff006e50;">
+      <div style="background: rgba(20, 20, 20, 0.8); padding: 25px; border-radius: 8px; border: 2px solid rgba(255, 0, 255, 0.3);">
         <div class="info-row">
           <span>Subtotal:</span>
           <span>$${subtotalUsd} USD</span>
@@ -377,23 +676,21 @@ function generateFulfillmentEmail(orderData: OrderData): string {
           <span>Impuestos:</span>
           <span>$${taxUsd} USD</span>
         </div>
-        <div class="info-row" style="border-top: 2px solid #ff006e; margin-top: 10px; padding-top: 15px; font-size: 24px; font-weight: bold; color: #ff006e;">
+        <div class="info-row" style="border-top: 2px solid #ff00ff; margin-top: 15px; padding-top: 20px; font-size: 28px; font-weight: 700; color: #ff00ff; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px;">
           <span>TOTAL:</span>
           <span>$${totalUsd} USD</span>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 30px;">
-        <a href="https://app.supabase.com/project/keslnkqnhpylfszsahls/editor" class="action-btn">
-          📊 Ver en Dashboard de Supabase
-        </a>
+      <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(255, 0, 255, 0.05); border-radius: 8px; border: 2px solid rgba(255, 0, 255, 0.3);">
+        <p style="margin: 0; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 1px; font-size: 14px; color: #64b5f6;">
+          <strong>⚠️ ACCIÓN REQUERIDA:</strong>
+        </p>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #b0b0b0;">
+          Por favor, verifica el inventario y procede con la fabricación de los productos solicitados.<br>
+          Notifica al cliente una vez que el pedido esté listo para envío.
+        </p>
       </div>
-
-      <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ff006e50; text-align: center;">
-        <strong>⚠️ ACCIÓN REQUERIDA:</strong><br>
-        Por favor, verifica el inventario y procede con la fabricación de los productos solicitados.<br>
-        Notifica al cliente una vez que el pedido esté listo para envío.
-      </p>
     </div>
   </div>
 </body>
