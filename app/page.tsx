@@ -87,6 +87,40 @@ export default function HomePage() {
       </section>
 
 
+      {/* Featured Products */}
+      <section ref={productsRef} className="py-12 sm:py-16 lg:py-24 bg-brand-black relative overflow-hidden scroll-reveal-up">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/3 left-1/6 w-3 h-3 bg-cyber-blue/20 rounded-full animate-pulse"></div>
+          <div className="absolute top-2/3 right-1/6 w-2 h-2 bg-cyber-pink/30 rounded-full animate-ping"></div>
+          <div className="absolute top-1/2 left-1/3 w-1.5 h-1.5 bg-cyber-purple/25 rounded-full animate-bounce"></div>
+          <div className="absolute bottom-1/4 right-1/3 w-2.5 h-2.5 bg-cyber-blue/15 rounded-full animate-pulse"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-[2]">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-heading text-text-primary mb-4 animate-glitch-reveal">
+              Nuevos Lanzamientos
+            </h2>
+            <div className="cyber-line mx-auto animate-slide-up"></div>
+            <p className="text-text-secondary text-base sm:text-lg lg:text-xl mt-4 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              Descubre nuestra colección especial 4:20 y más productos exclusivos
+            </p>
+          </div>
+
+          <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <ProductGrid products={featuredProducts} />
+          </div>
+
+          <div className="text-center mt-8 sm:mt-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <Link href="/catalog" className="btn-primary text-sm sm:text-base px-6 py-3 lg:px-8 lg:py-4 group hover:scale-105 transition-transform duration-300 animate-pulse-glow-scroll">
+              <span>Ver Todo el Catálogo</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Mission Section */}
       <section id="mission" ref={missionRef} className="py-12 sm:py-16 lg:py-24 bg-brand-black relative overflow-hidden scroll-reveal-blur">
         {/* Animated Background Elements */}
@@ -159,40 +193,6 @@ export default function HomePage() {
                 <div className="absolute top-1/2 -right-4 w-1 h-1 bg-cyber-purple/60 rounded-full animate-bounce"></div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section ref={productsRef} className="py-12 sm:py-16 lg:py-24 bg-brand-black relative overflow-hidden scroll-reveal-up">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/3 left-1/6 w-3 h-3 bg-cyber-blue/20 rounded-full animate-pulse"></div>
-          <div className="absolute top-2/3 right-1/6 w-2 h-2 bg-cyber-pink/30 rounded-full animate-ping"></div>
-          <div className="absolute top-1/2 left-1/3 w-1.5 h-1.5 bg-cyber-purple/25 rounded-full animate-bounce"></div>
-          <div className="absolute bottom-1/4 right-1/3 w-2.5 h-2.5 bg-cyber-blue/15 rounded-full animate-pulse"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-[2]">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-heading text-text-primary mb-4 animate-glitch-reveal">
-              Nuevos Lanzamientos
-            </h2>
-            <div className="cyber-line mx-auto animate-slide-up"></div>
-            <p className="text-text-secondary text-base sm:text-lg lg:text-xl mt-4 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Descubre nuestra colección especial 4:20 y más productos exclusivos
-            </p>
-          </div>
-
-          <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <ProductGrid products={featuredProducts} />
-          </div>
-
-          <div className="text-center mt-8 sm:mt-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Link href="/catalog" className="btn-primary text-sm sm:text-base px-6 py-3 lg:px-8 lg:py-4 group hover:scale-105 transition-transform duration-300 animate-pulse-glow-scroll">
-              <span>Ver Todo el Catálogo</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-            </Link>
           </div>
         </div>
       </section>
