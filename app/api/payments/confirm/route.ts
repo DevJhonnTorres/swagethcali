@@ -39,25 +39,51 @@ export async function POST(request: NextRequest) {
 
         // Add shipping and customer data if provided
         if (orderData?.customerName || orderData?.customerEmail) {
-          orderUpdate.customer_name = orderData.customerName;
-          orderUpdate.customer_email = orderData.customerEmail;
-          orderUpdate.customer_phone = orderData.customerPhone;
+          orderUpdate.customer_name = orderData.customerName || null;
+          orderUpdate.customer_email = orderData.customerEmail || null;
+          orderUpdate.customer_phone = orderData.customerPhone || null;
           
           if (orderData?.shippingAddress) {
-            const addressParts = orderData.shippingAddress.split(', ');
-            orderUpdate.shipping_address = addressParts[0] || orderData.shippingAddress;
-            orderUpdate.shipping_city = addressParts[1] || orderData.shippingAddress;
+            // Parse shipping address (format: "address, city, country")
+            const addressParts = orderData.shippingAddress.split(', ').map((s: string) => s.trim());
+            orderUpdate.shipping_address = addressParts[0] || null;
+            orderUpdate.shipping_city = addressParts[1] || null;
             orderUpdate.shipping_country = addressParts[2] || 'Colombia';
+          } else {
+            // If no shipping address provided, try to extract from contactInfo if available
+            if (orderData?.address) {
+              orderUpdate.shipping_address = orderData.address;
+            }
+            if (orderData?.city) {
+              orderUpdate.shipping_city = orderData.city;
+            }
+            if (orderData?.country) {
+              orderUpdate.shipping_country = orderData.country;
+            }
           }
         }
 
-        const { error: orderError } = await supabase
+        console.log('📝 Updating order with data:', {
+          orderId,
+          orderUpdate,
+          orderDataKeys: Object.keys(orderData || {}),
+        });
+
+        const { error: orderError, data: updatedOrder } = await supabase
           .from('orders')
           .update(orderUpdate)
-          .eq('order_id', orderId);
+          .eq('order_id', orderId)
+          .select();
 
         if (orderError) {
-          console.warn('⚠️ Warning: Could not update order in Supabase:', orderError);
+          console.error('❌ Error updating order:', orderError);
+          console.error('❌ Order update details:', {
+            orderId,
+            orderUpdate,
+            error: orderError,
+          });
+        } else {
+          console.log('✅ Order updated successfully:', updatedOrder);
         }
       } catch (dbError) {
         console.warn('⚠️ Warning: Database not available, continuing without persistence:', dbError);

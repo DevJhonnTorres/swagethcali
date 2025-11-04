@@ -46,6 +46,54 @@ export default function CheckoutPage() {
 
       console.log('💳 Starting payment (Base Pay SDK):', { totalUsd, formattedAmount });
 
+      // Create order FIRST before payment
+      let orderId: string;
+      let paymentId: string;
+      
+      try {
+        const shippingCents = cart.total > 200000 ? 0 : 15000;
+        const taxCents = Math.round(cart.total * 0.19);
+        const totalAmountCents = cart.total + shippingCents + taxCents;
+        const amountCop = Math.round(totalUsd * 4200);
+
+        const initiateResponse = await fetch('/api/base-pay/initiate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: totalUsd.toString(),
+            to: process.env.NEXT_PUBLIC_RECIPIENT_ADDRESS || '0x0000000000000000000000000000000000000000',
+            testnet: process.env.NEXT_PUBLIC_TESTNET === 'true',
+            items: cart.items,
+            amountCop: amountCop,
+            customerInfo: {
+              name: contactInfo.name,
+              email: contactInfo.email,
+              phone: contactInfo.phone,
+              address: contactInfo.address,
+              city: contactInfo.city,
+              country: contactInfo.country,
+            },
+          }),
+        });
+
+        if (initiateResponse.ok) {
+          const initiateData = await initiateResponse.json();
+          orderId = initiateData.orderId;
+          paymentId = initiateData.paymentId;
+          console.log('✅ Order created:', { orderId, paymentId });
+        } else {
+          throw new Error('Failed to create order');
+        }
+      } catch (orderError) {
+        console.error('❌ Error creating order:', orderError);
+        // Generate fallback IDs
+        orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        paymentId = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        console.warn('⚠️ Using fallback order/payment IDs');
+      }
+
       // 1) Open Base Pay and request payment
       const payment = await pay({
         amount: formattedAmount,
@@ -135,8 +183,8 @@ export default function CheckoutPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            orderId: payment.id, // using payment.id as order reference
-            paymentId: payment.id,
+            orderId: orderId, // Use the orderId we created before payment
+            paymentId: paymentId, // Use the paymentId we created before payment
             transactionHash: txHash,
             orderData: {
               customerEmail: contactInfo.email,
@@ -166,8 +214,8 @@ export default function CheckoutPage() {
         const totalCents = subtotalCents + shippingCents + taxCents;
 
         const lastOrder = {
-          orderId: payment.id,
-          paymentId: payment.id,
+          orderId: orderId,
+          paymentId: paymentId,
           transactionHash: txHash,
           items: cart.items,
           totals: {
