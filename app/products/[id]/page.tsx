@@ -14,6 +14,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   const product = SAMPLE_PRODUCTS.find(p => p.id === params.id);
 
@@ -30,8 +31,21 @@ export default function ProductDetailPage() {
     );
   }
 
+  // Auto-select first available size if variants exist
+  const availableSizes = product.variants?.filter(v => v.inStock) || [];
+  const hasSizes = availableSizes.length > 0;
+
   const handleAddToCart = () => {
-    addToCart(product, 1);
+    if (hasSizes && !selectedSize) {
+      alert('Por favor selecciona una talla');
+      return;
+    }
+
+    const variant = hasSizes 
+      ? product.variants?.find(v => v.size === selectedSize)
+      : undefined;
+
+    addToCart(product, 1, variant);
     router.push('/cart');
   };
 
@@ -142,22 +156,96 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+            {/* Size Selection */}
+            {hasSizes && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-lg font-heading font-medium text-white">
+                    Selecciona Talla:
+                  </label>
+                  {selectedSize && (
+                    <span className="text-sm text-cyber-blue">Talla: {selectedSize}</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {availableSizes.map((variant) => (
+                    <button
+                      key={variant.id}
+                      onClick={() => setSelectedSize(variant.size || null)}
+                      disabled={!variant.inStock}
+                      className={`px-4 py-3 rounded-lg border-2 font-heading font-medium transition-all ${
+                        selectedSize === variant.size
+                          ? 'border-cyber-blue bg-cyber-blue/20 text-cyber-blue shadow-lg shadow-cyber-blue/30'
+                          : variant.inStock
+                          ? 'border-eth-gray/30 bg-bg-card/50 text-white hover:border-cyber-blue/50 hover:bg-cyber-blue/10'
+                          : 'border-eth-gray/20 bg-bg-card/30 text-eth-gray/50 cursor-not-allowed opacity-50'
+                      }`}
+                    >
+                      {variant.size}
+                    </button>
+                  ))}
+                </div>
+                {!selectedSize && hasSizes && (
+                  <p className="text-sm text-cyber-pink animate-pulse">
+                    ⚠️ Selecciona una talla para continuar
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Stock Status */}
-            <div className={`flex items-center space-x-2 ${product.inStock ? 'text-cyber-green' : 'text-red-400'}`}>
-              <Check className={`w-5 h-5 ${product.inStock ? 'text-cyber-green' : 'text-red-400'}`} />
+            <div className={`flex items-center space-x-2 ${
+              hasSizes 
+                ? (selectedSize && availableSizes.find(v => v.size === selectedSize)?.inStock)
+                  ? 'text-cyber-green'
+                  : selectedSize 
+                  ? 'text-red-400'
+                  : 'text-text-secondary'
+                : product.inStock 
+                ? 'text-cyber-green' 
+                : 'text-red-400'
+            }`}>
+              <Check className={`w-5 h-5 ${
+                hasSizes 
+                  ? (selectedSize && availableSizes.find(v => v.size === selectedSize)?.inStock)
+                    ? 'text-cyber-green'
+                    : selectedSize 
+                    ? 'text-red-400'
+                    : 'text-text-secondary'
+                  : product.inStock 
+                  ? 'text-cyber-green' 
+                  : 'text-red-400'
+              }`} />
               <span className="font-medium">
-                {product.inStock ? 'En stock - Disponible' : 'Agotado'}
+                {hasSizes 
+                  ? (selectedSize && availableSizes.find(v => v.size === selectedSize)?.inStock)
+                    ? `Talla ${selectedSize} - En stock`
+                    : selectedSize 
+                    ? `Talla ${selectedSize} - Agotada`
+                    : 'Selecciona una talla'
+                  : product.inStock 
+                  ? 'En stock - Disponible' 
+                  : 'Agotado'}
               </span>
             </div>
 
             {/* Add to Cart Button */}
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock}
+              disabled={
+                !product.inStock || 
+                (hasSizes && (!selectedSize || !availableSizes.find(v => v.size === selectedSize)?.inStock))
+              }
               className="w-full bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-blue disabled:from-eth-gray disabled:to-eth-gray text-white font-heading uppercase py-4 px-6 rounded-lg transition-all duration-300 border border-cyber-blue/50 disabled:border-eth-gray/30 shadow-lg hover:shadow-cyber-blue/50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span>{product.inStock ? 'Agregar al Carrito' : 'Producto Agotado'}</span>
+              <span>
+                {!product.inStock 
+                  ? 'Producto Agotado'
+                  : hasSizes && !selectedSize
+                  ? 'Selecciona una Talla'
+                  : 'Agregar al Carrito'}
+              </span>
             </button>
 
             {/* Features */}

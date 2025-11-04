@@ -28,6 +28,11 @@ interface OrderData {
       category: string;
     };
     quantity: number;
+    variant?: {
+      id?: string;
+      name?: string;
+      size?: string;
+    };
   }>;
   total: number;
   subtotal?: number;
@@ -116,7 +121,10 @@ export async function sendWhatsAppNotification(orderData: OrderData, distributor
   try {
     const message = `🧊 Nueva Orden!\n\n` +
       `Orden: #${orderData.orderId}\n` +
-      `Productos:\n${orderData.items.map(item => `• ${item.product.name} x${item.quantity}`).join('\n')}\n\n` +
+      `Productos:\n${orderData.items.map(item => {
+        const variant = item.variant || (item as any).variant;
+        return `• ${item.product.name}${variant?.size ? ` (Talla: ${variant.size})` : ''} x${item.quantity}`;
+      }).join('\n')}\n\n` +
       `Total: $${orderData.total.toLocaleString()} COP\n` +
       `Cliente: ${orderData.customerEmail}\n\n` +
       `📦 ¡Haz clic para ver detalles!`;
@@ -349,11 +357,12 @@ function generateOrderConfirmationEmail(orderData: OrderData): string {
       <div class="product-list">
         ${orderData.items.map(item => {
           const itemPrice = (item.product.price / 100).toFixed(2);
+          const variant = item.variant || (item as any).variant;
           return `
           <div class="product-item">
             <img src="${item.product.image}" class="product-image" alt="${item.product.name}" />
             <div class="product-details">
-              <div class="product-name">${item.product.name}</div>
+              <div class="product-name">${item.product.name}${variant?.size ? ` <span style="color: #2d25ff;">(Talla: ${variant.size})</span>` : ''}</div>
               <div class="product-category">${item.product.category}</div>
               <div>Cantidad: <strong>${item.quantity}</strong></div>
               <div class="product-price">$${itemPrice} USD c/u</div>
@@ -633,12 +642,13 @@ function generateFulfillmentEmail(orderData: OrderData): string {
         ${orderData.items.map(item => {
           const itemPrice = (item.product.price / 100).toFixed(2);
           const totalItemPrice = (item.product.price * item.quantity / 100).toFixed(2);
+          const variant = item.variant || (item as any).variant;
           return `
           <div class="product-item">
             <div class="product-header">
               <img src="${item.product.image}" class="product-image" alt="${item.product.name}" />
               <div class="product-details">
-                <div class="product-name">${item.product.name}</div>
+                <div class="product-name">${item.product.name}${variant?.size ? ` <span style="color: #2d25ff;">(Talla: ${variant.size})</span>` : ''}</div>
                 <div class="product-id">ID: ${item.product.id}</div>
               </div>
             </div>
@@ -646,7 +656,7 @@ function generateFulfillmentEmail(orderData: OrderData): string {
             <div class="product-specs">
               <div class="spec-item">
                 <div class="spec-label">Cantidad a Fabricar</div>
-                <div class="spec-value" style="color: #ff006e; font-size: 20px;">${item.quantity} unidades</div>
+                <div class="spec-value" style="color: #ff006e; font-size: 20px;">${item.quantity} unidades${variant?.size ? ` (Talla: ${variant.size})` : ''}</div>
               </div>
               <div class="spec-item">
                 <div class="spec-label">Categoría</div>

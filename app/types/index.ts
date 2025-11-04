@@ -16,6 +16,7 @@ export interface Product {
 export interface ProductVariant {
   id: string;
   name: string;
+  size?: string; // Talla del producto (S, M, L, XL, etc.)
   price: number;
   image: string;
   inStock: boolean;

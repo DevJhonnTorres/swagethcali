@@ -16,6 +16,12 @@ export const SAMPLE_PRODUCTS: Product[] = [
     inStock: true,
     isOnSale: true,
     tags: ['gorra', 'ethereum', 'blanco'],
+    variants: [
+      { id: 'size-s', name: 'Talla S', size: 'S', price: 100, image: '/images/gorra-blanca-privacy-freedom.png', inStock: true },
+      { id: 'size-m', name: 'Talla M', size: 'M', price: 100, image: '/images/gorra-blanca-privacy-freedom.png', inStock: true },
+      { id: 'size-l', name: 'Talla L', size: 'L', price: 100, image: '/images/gorra-blanca-privacy-freedom.png', inStock: true },
+      { id: 'size-xl', name: 'Talla XL', size: 'XL', price: 100, image: '/images/gorra-blanca-privacy-freedom.png', inStock: true },
+    ],
   },
   {
     id: '2',
@@ -29,6 +35,12 @@ export const SAMPLE_PRODUCTS: Product[] = [
     inStock: true,
     isOnSale: true,
     tags: ['gorra', 'ethereum', 'negro', 'holográfico'],
+    variants: [
+      { id: 'size-s', name: 'Talla S', size: 'S', price: 100, image: '/images/gorra-negra-privacy-normal.png', inStock: true },
+      { id: 'size-m', name: 'Talla M', size: 'M', price: 100, image: '/images/gorra-negra-privacy-normal.png', inStock: true },
+      { id: 'size-l', name: 'Talla L', size: 'L', price: 100, image: '/images/gorra-negra-privacy-normal.png', inStock: true },
+      { id: 'size-xl', name: 'Talla XL', size: 'XL', price: 100, image: '/images/gorra-negra-privacy-normal.png', inStock: true },
+    ],
   },
   {
     id: '3',
@@ -41,6 +53,14 @@ export const SAMPLE_PRODUCTS: Product[] = [
     inStock: true,
     isOnSale: false,
     tags: ['hoodie', 'crema', 'místico', 'privacy'],
+    variants: [
+      { id: 'size-xs', name: 'Talla XS', size: 'XS', price: 100, image: '/images/hoodie-crema-privacy-magic.png', inStock: true },
+      { id: 'size-s', name: 'Talla S', size: 'S', price: 100, image: '/images/hoodie-crema-privacy-magic.png', inStock: true },
+      { id: 'size-m', name: 'Talla M', size: 'M', price: 100, image: '/images/hoodie-crema-privacy-magic.png', inStock: true },
+      { id: 'size-l', name: 'Talla L', size: 'L', price: 100, image: '/images/hoodie-crema-privacy-magic.png', inStock: true },
+      { id: 'size-xl', name: 'Talla XL', size: 'XL', price: 100, image: '/images/hoodie-crema-privacy-magic.png', inStock: true },
+      { id: 'size-xxl', name: 'Talla XXL', size: 'XXL', price: 100, image: '/images/hoodie-crema-privacy-magic.png', inStock: true },
+    ],
   },
   {
     id: '4',
@@ -53,6 +73,14 @@ export const SAMPLE_PRODUCTS: Product[] = [
     inStock: true,
     isOnSale: false,
     tags: ['hoodie', 'negro', 'tribal', 'exclusivo'],
+    variants: [
+      { id: 'size-xs', name: 'Talla XS', size: 'XS', price: 100, image: '/images/hoodie-negra-eth-cali.png', inStock: true },
+      { id: 'size-s', name: 'Talla S', size: 'S', price: 100, image: '/images/hoodie-negra-eth-cali.png', inStock: true },
+      { id: 'size-m', name: 'Talla M', size: 'M', price: 100, image: '/images/hoodie-negra-eth-cali.png', inStock: true },
+      { id: 'size-l', name: 'Talla L', size: 'L', price: 100, image: '/images/hoodie-negra-eth-cali.png', inStock: true },
+      { id: 'size-xl', name: 'Talla XL', size: 'XL', price: 100, image: '/images/hoodie-negra-eth-cali.png', inStock: true },
+      { id: 'size-xxl', name: 'Talla XXL', size: 'XXL', price: 100, image: '/images/hoodie-negra-eth-cali.png', inStock: true },
+    ],
   },
 ];
 

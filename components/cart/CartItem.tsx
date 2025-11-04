@@ -41,7 +41,16 @@ export default function CartItem({ item }: CartItemProps) {
           {product.name}
         </h3>
         {variant && (
-          <p className="text-sm text-text-secondary">Variante: {variant.name}</p>
+          <div className="space-y-1">
+            {variant.size && (
+              <p className="text-sm text-cyber-blue font-medium">
+                Talla: {variant.size}
+              </p>
+            )}
+            {variant.name && variant.name !== `Talla ${variant.size}` && (
+              <p className="text-sm text-text-secondary">Variante: {variant.name}</p>
+            )}
+          </div>
         )}
         <p className="text-lg font-heading font-bold text-cyber-blue">
           {formatPrice(price)}

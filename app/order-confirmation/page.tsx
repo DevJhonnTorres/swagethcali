@@ -9,7 +9,12 @@ type StoredOrder = {
   orderId: string;
   paymentId?: string;
   transactionHash?: string;
-  items: Array<{ id: string; quantity: number; product: { name: string; price: number } }>;
+  items: Array<{ 
+    id: string; 
+    quantity: number; 
+    product: { name: string; price: number };
+    variant?: { size?: string; name?: string };
+  }>;
   totals: { subtotal: number; shipping: number; tax: number; total: number };
   customer?: { name?: string; email?: string; phone?: string; address?: string; city?: string; country?: string };
   method?: string;
@@ -94,7 +99,12 @@ export default function OrderConfirmationPage() {
               <div className="divide-y divide-eth-gray/30">
                 {order.items.map((it) => (
                   <div key={it.id} className="py-2 flex items-center justify-between">
-                    <span className="text-white">{it.quantity}x {it.product.name}</span>
+                    <div className="flex-1">
+                      <span className="text-white">{it.quantity}x {it.product.name}</span>
+                      {it.variant?.size && (
+                        <span className="text-cyber-blue ml-2 text-sm">(Talla: {it.variant.size})</span>
+                      )}
+                    </div>
                     <span className="text-text-secondary">{formatPrice(it.product.price * it.quantity)}</span>
                   </div>
                 ))}
