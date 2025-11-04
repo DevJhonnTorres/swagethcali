@@ -71,10 +71,7 @@ export default function CheckoutPage() {
       let txHash = payment.id || '';
       
       try {
-        const status = await getPaymentStatus(
-          payment.id,
-          process.env.NEXT_PUBLIC_TESTNET === 'true'
-        );
+        const status = await getPaymentStatus(payment.id);
         
         console.log('📊 Payment status:', JSON.stringify(status, null, 2));
         
