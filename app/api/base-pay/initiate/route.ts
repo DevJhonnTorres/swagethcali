@@ -11,7 +11,7 @@ import { supabase } from '@/app/lib/supabase';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { amount, to, testnet, customerId, items, amountCop } = body;
+    const { amount, to, testnet, customerId, items, amountCop, customerInfo } = body;
 
     // Generate order ID
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -22,17 +22,30 @@ export async function POST(request: NextRequest) {
     // Save order to Supabase (if configured)
     if (supabase) {
       try {
+        const orderData: any = {
+          order_id: orderId,
+          customer_id: customerId,
+          amount_usd: parseFloat(amount),
+          amount_cop: amountCop || 0,
+          status: 'pending',
+          items: items || [],
+          payment_id: paymentId,
+          payment_method: 'base_pay',
+        };
+
+        // Add customer and shipping info if provided
+        if (customerInfo) {
+          orderData.customer_name = customerInfo.name;
+          orderData.customer_email = customerInfo.email;
+          orderData.customer_phone = customerInfo.phone;
+          orderData.shipping_address = customerInfo.address;
+          orderData.shipping_city = customerInfo.city;
+          orderData.shipping_country = customerInfo.country;
+        }
+
         const { error: orderError } = await supabase
           .from('orders')
-          .insert({
-            order_id: orderId,
-            customer_id: customerId,
-            amount_usd: parseFloat(amount),
-            amount_cop: amountCop || 0,
-            status: 'pending',
-            items: items || [],
-            payment_id: paymentId,
-          });
+          .insert(orderData);
 
         if (orderError) {
           console.warn('⚠️ Warning: Could not save order to Supabase:', orderError);
@@ -48,6 +61,7 @@ export async function POST(request: NextRequest) {
             to_address: to,
             testnet: testnet || false,
             status: 'pending',
+            payment_method: 'base_pay',
           });
 
         if (paymentError) {

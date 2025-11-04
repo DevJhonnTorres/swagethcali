@@ -30,14 +30,30 @@ export async function POST(request: NextRequest) {
           console.warn('⚠️ Warning: Could not update payment in Supabase:', paymentError);
         }
 
-        // Update order status in Supabase
+        // Update order status in Supabase (include shipping data if provided)
+        const orderUpdate: any = {
+          status: 'completed',
+          transaction_hash: transactionHash,
+          completed_at: new Date().toISOString(),
+        };
+
+        // Add shipping and customer data if provided
+        if (orderData?.customerName || orderData?.customerEmail) {
+          orderUpdate.customer_name = orderData.customerName;
+          orderUpdate.customer_email = orderData.customerEmail;
+          orderUpdate.customer_phone = orderData.customerPhone;
+          
+          if (orderData?.shippingAddress) {
+            const addressParts = orderData.shippingAddress.split(', ');
+            orderUpdate.shipping_address = addressParts[0] || orderData.shippingAddress;
+            orderUpdate.shipping_city = addressParts[1] || orderData.shippingAddress;
+            orderUpdate.shipping_country = addressParts[2] || 'Colombia';
+          }
+        }
+
         const { error: orderError } = await supabase
           .from('orders')
-          .update({
-            status: 'completed',
-            transaction_hash: transactionHash,
-            completed_at: new Date().toISOString(),
-          })
+          .update(orderUpdate)
           .eq('order_id', orderId);
 
         if (orderError) {

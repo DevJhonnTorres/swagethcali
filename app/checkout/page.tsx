@@ -5,7 +5,7 @@ import { useCart } from '@/app/contexts/CartContext';
 import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 // Base Pay SDK (real payments)
-import { pay } from '@base-org/account';
+import { pay, getPaymentStatus } from '@base-org/account';
 import { formatUSDCAmount } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
 
@@ -64,12 +64,63 @@ export default function CheckoutPage() {
 
       console.log('✅ Payment initiated:', { paymentId: payment.id });
       
+      // Wait a bit for the transaction to be confirmed on-chain
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Get the full transaction hash from payment status
+      let txHash = payment.id || '';
+      
+      try {
+        const status = await getPaymentStatus(
+          payment.id,
+          process.env.NEXT_PUBLIC_TESTNET === 'true'
+        );
+        
+        console.log('📊 Payment status:', JSON.stringify(status, null, 2));
+        
+        // Try multiple ways to get the full transaction hash
+        // A full Ethereum tx hash is 66 characters (0x + 64 hex chars)
+        const FULL_HASH_LENGTH = 66;
+        
+        if (status.transactionHash && status.transactionHash.length >= FULL_HASH_LENGTH) {
+          txHash = status.transactionHash;
+          console.log('✅ Full transaction hash from status.transactionHash:', txHash);
+        } else if ((status as any).txHash && (status as any).txHash.length >= FULL_HASH_LENGTH) {
+          txHash = (status as any).txHash;
+          console.log('✅ Full transaction hash from status.txHash:', txHash);
+        } else if (status.id && status.id.length >= FULL_HASH_LENGTH && status.id.startsWith('0x')) {
+          txHash = status.id;
+          console.log('✅ Full transaction hash from status.id:', txHash);
+        } else {
+          console.warn('⚠️ No full transaction hash found in status:', {
+            transactionHash: status.transactionHash,
+            id: status.id,
+            status: status.status,
+            paymentId: payment.id
+          });
+          // If payment.id looks like a partial hash, log it
+          if (payment.id && payment.id.startsWith('0x') && payment.id.length < FULL_HASH_LENGTH) {
+            console.warn('⚠️ payment.id appears to be truncated:', payment.id);
+          }
+        }
+      } catch (statusError) {
+        console.error('❌ Could not get payment status:', statusError);
+        // Continue with payment.id as fallback
+      }
+      
+      // Validate hash length before saving
+      if (txHash && txHash.length < FULL_HASH_LENGTH && txHash.startsWith('0x')) {
+        console.warn('⚠️ Transaction hash appears truncated:', {
+          hash: txHash,
+          length: txHash.length,
+          expected: FULL_HASH_LENGTH
+        });
+      }
+
       setPaymentStatus('¡Pago completado!');
-      // payment.id IS the transaction hash according to the docs
-      const txHash = payment.id || '';
       setTxHash(txHash);
 
-      console.log('✅ Payment completed:', { txHash });
+      console.log('✅ Payment completed:', { txHash, fullHash: txHash.length >= 66 });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
       try {
