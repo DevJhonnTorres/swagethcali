@@ -5,8 +5,8 @@ import { useCart } from '@/app/contexts/CartContext';
 import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 // Base Pay SDK (real payments)
-import { pay, getPaymentStatus } from '@base-org/account';
-import { formatUSDCAmount } from '@/app/lib/base-pay';
+import { pay } from '@base-org/account';
+import { formatUSDCAmount, getPaymentStatus } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
 
 interface ContactInfo {
@@ -71,7 +71,10 @@ export default function CheckoutPage() {
       let txHash = payment.id || '';
       
       try {
-        const status = await getPaymentStatus(payment.id);
+        const status = await getPaymentStatus(
+          payment.id,
+          process.env.NEXT_PUBLIC_TESTNET === 'true'
+        );
         
         console.log('📊 Payment status:', JSON.stringify(status, null, 2));
         
