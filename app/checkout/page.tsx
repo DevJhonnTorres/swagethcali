@@ -70,6 +70,9 @@ export default function CheckoutPage() {
       // Get the full transaction hash from payment status
       let txHash = payment.id || '';
       
+      // A full Ethereum tx hash is 66 characters (0x + 64 hex chars)
+      const FULL_HASH_LENGTH = 66;
+      
       try {
         const status = await getPaymentStatus(
           payment.id,
@@ -79,9 +82,6 @@ export default function CheckoutPage() {
         console.log('📊 Payment status:', JSON.stringify(status, null, 2));
         
         // Try multiple ways to get the full transaction hash
-        // A full Ethereum tx hash is 66 characters (0x + 64 hex chars)
-        const FULL_HASH_LENGTH = 66;
-        
         if (status.transactionHash && status.transactionHash.length >= FULL_HASH_LENGTH) {
           txHash = status.transactionHash;
           console.log('✅ Full transaction hash from status.transactionHash:', txHash);
