@@ -41,6 +41,14 @@ export async function POST(request: NextRequest) {
       });
 
       // Find order by reference
+      if (!supabase) {
+        console.error('❌ Supabase not configured');
+        return NextResponse.json(
+          { error: 'Database not configured' },
+          { status: 500 }
+        );
+      }
+
       const { data: payment } = await supabase
         .from('payments')
         .select('order_id')
