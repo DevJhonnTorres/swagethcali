@@ -38,64 +38,26 @@ NEXT_PUBLIC_APP_URL=https://swagethcali.vercel.app
    - **Llave privada** → `WOMPI_PRIVATE_KEY`
    - **Ambiente**: Elige `sandbox` para pruebas o `production` para producción
 
-### Configurar Webhook (URL de Eventos con n8n)
+### Configurar Webhook (URL de Eventos)
 
-**✅ Configuración actual:** Usando n8n como intermediario
+**✅ Configuración:** Webhook directo a tu aplicación
 
-**URL de eventos en Wompi:** `https://ekinoxis.app.n8n.cloud/webhook/wompi-pago`
+#### Configuración en Wompi
 
-#### Configuración en Wompi (Ya está configurado)
+1. En el panel de Wompi, ve a **Programadores > Seguimiento de transacciones**
+2. En el campo **"URL de Eventos"**, ingresa:
+   ```
+   https://swagethcali.vercel.app/api/wompi/webhook
+   ```
+   (Reemplaza `swagethcali.vercel.app` con tu dominio real si es diferente)
+3. Haz clic en el botón **"Guardar"** (botón verde)
+4. El **Secreto de Eventos** es: `prod_events_r2IuTTqGktJQQIgZ8ooRY2bflJ0HwG5a`
+5. Wompi enviará automáticamente eventos cuando:
+   - Se cree una transacción
+   - Se actualice el estado de una transacción
+   - Se apruebe un pago
 
-1. ✅ La URL de eventos ya está configurada: `https://ekinoxis.app.n8n.cloud/webhook/wompi-pago`
-2. ✅ El **Secreto de Eventos** es: `prod_events_r2IuTTqGktJQQIgZ8ooRY2bflJ0HwG5a`
-
-#### Configuración en n8n (Workflow necesario)
-
-Necesitas crear un workflow en n8n que:
-
-1. **Reciba el webhook de Wompi** (ya configurado en `ekinoxis.app.n8n.cloud/webhook/wompi-pago`)
-2. **Reenvíe los datos a tu aplicación** en `https://tu-dominio.vercel.app/api/wompi/webhook`
-
-**Estructura del workflow n8n:**
-
-```
-Webhook (Trigger) 
-  ↓
-  Recibe: POST desde Wompi
-  Headers: x-wompi-signature
-  Body: { event, data }
-  ↓
-HTTP Request (Action)
-  ↓
-  Método: POST
-  URL: https://tu-dominio.vercel.app/api/wompi/webhook
-  Headers:
-    - Content-Type: application/json
-    - x-wompi-signature: {{ $json.headers['x-wompi-signature'] }}
-  Body: {{ $json.body }}
-```
-
-**Pasos detallados en n8n:**
-
-1. **Nodo Webhook:**
-   - Método: POST
-   - Path: `wompi-pago`
-   - Response Mode: "Respond When Last Node Finishes"
-
-2. **Nodo HTTP Request:**
-   - Método: POST
-   - URL: `https://tu-dominio.vercel.app/api/wompi/webhook`
-   - Authentication: None
-   - Headers:
-     ```
-     Content-Type: application/json
-     x-wompi-signature: {{ $json.headers['x-wompi-signature'] || $json['x-wompi-signature'] }}
-     ```
-   - Body: `{{ $json.body }}` o `{{ $json }}` (depende de cómo n8n reciba los datos)
-
-3. **Activar el workflow** para que esté escuchando
-
-**Nota:** El webhook de Wompi debe enviar el header `x-wompi-signature` y el body completo sin modificaciones para que la validación funcione correctamente.
+**Nota:** Asegúrate de que la URL sea accesible públicamente (no `localhost`).
 
 ---
 
