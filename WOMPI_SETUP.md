@@ -47,7 +47,7 @@ NEXT_PUBLIC_APP_URL=https://swagethcali.vercel.app
 #### Configuración en Wompi (Ya está configurado)
 
 1. ✅ La URL de eventos ya está configurada: `https://ekinoxis.app.n8n.cloud/webhook/wompi-pago`
-2. ✅ El **Secreto de Eventos** es: `test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWINF`
+2. ✅ El **Secreto de Eventos** es: `prod_events_r2IuTTqGktJQQIgZ8ooRY2bflJ0HwG5a`
 
 #### Configuración en n8n (Workflow necesario)
 
