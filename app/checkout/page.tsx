@@ -6,8 +6,9 @@ import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-rea
 import Link from 'next/link';
 // Base Pay SDK (real payments)
 import { pay } from '@base-org/account';
-import { formatUSDCAmount, getPaymentStatus } from '@/app/lib/base-pay';
+import { formatUSDCAmount } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
+import { waitForTransactionHash } from '@/app/lib/ethers-helper';
 
 interface ContactInfo {
   email: string;
@@ -112,9 +113,16 @@ export default function CheckoutPage() {
 
       console.log('✅ Payment initiated:', { paymentId: payment.id });
       
-      // For Base Pay, payment.id IS the transaction hash
-      // Use it directly - no need to query status
-      const txHash = payment.id || '';
+      // Use ethers to wait for transaction confirmation and get full hash
+      const isTestnet = process.env.NEXT_PUBLIC_TESTNET === 'true';
+      
+      setPaymentStatus('Confirmando transacción en la blockchain...');
+      
+      const txHash = await waitForTransactionHash(
+        payment.id,
+        isTestnet,
+        60000 // 60 seconds timeout
+      );
 
       setPaymentStatus('¡Pago completado!');
       setTxHash(txHash);
@@ -122,7 +130,8 @@ export default function CheckoutPage() {
       console.log('✅ Payment completed:', { 
         txHash: txHash, 
         hashLength: txHash.length,
-        paymentId: payment.id
+        paymentId: payment.id,
+        isFullHash: txHash.length === 66
       });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
