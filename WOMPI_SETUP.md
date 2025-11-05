@@ -13,18 +13,21 @@
 Agrega estas variables a tu archivo `.env.local` o en Vercel:
 
 ```env
-# Wompi Configuration
-WOMPI_PUBLIC_KEY=pub_test_g3MsCu25QxCwAqi5gmrfjGKtthaBuY2j
-WOMPI_PRIVATE_KEY=prv_test_26EN80UN1Pq0Ytba9EDf6WUMQXgKYDMB
-WOMPI_ENV=sandbox  # 'sandbox' o 'production'
-WOMPI_WEBHOOK_SECRET=test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWINF
-WOMPI_INTEGRITY_SECRET=test_integrity_RiVHFbr2pRsHmAec5JKtrpFiPgU7kHZ4
+# Wompi Configuration (PRODUCCIÓN)
+WOMPI_PUBLIC_KEY=pub_prod_uJu3MAUpIWi1RCFTkbqfaUrnvseOojtL
+WOMPI_PRIVATE_KEY=prv_prod_J57FOyzbwtGxV7QLUpCXhw4B3WqgUyru
+WOMPI_ENV=production  # 'sandbox' o 'production'
+WOMPI_WEBHOOK_SECRET=prod_events_r2IuTTqGktJQQIgZ8ooRY2bflJ0HwG5a
+WOMPI_INTEGRITY_SECRET=prod_integrity_gqcWQ2O6UmUEoUZC8zVOEeFn42YdaG9F
 
 # App URL (para redirects)
-NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
+NEXT_PUBLIC_APP_URL=https://swagethcali.vercel.app
 ```
 
-**Nota:** Estos son los valores que tienes en tu panel de Wompi. Si cambias de ambiente (sandbox → production), deberás obtener las nuevas llaves desde el panel.
+**⚠️ IMPORTANTE:** Estas son credenciales de **PRODUCCIÓN**. Asegúrate de:
+- Cambiar `WOMPI_ENV=production` (no `sandbox`)
+- Usar estas credenciales solo en producción
+- No compartir estas llaves públicamente
 
 ### Obtener las Llaves
 
