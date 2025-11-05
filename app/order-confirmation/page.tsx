@@ -75,15 +75,32 @@ export default function OrderConfirmationPage() {
                       href={`https://${process.env.NEXT_PUBLIC_TESTNET === 'true' ? 'sepolia.' : ''}basescan.org/tx/${order.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyber-blue hover:text-cyber-purple font-mono text-xs hover:underline break-all text-right"
-                      title={order.transactionHash}
+                      className="text-cyber-blue hover:text-cyber-purple font-mono text-xs hover:underline break-all text-right max-w-xs"
+                      title={`Ver en BaseScan: ${order.transactionHash}`}
                     >
-                      {order.transactionHash.length > 42 
+                      {order.transactionHash.length === 66 
                         ? `${order.transactionHash.slice(0, 10)}...${order.transactionHash.slice(-8)}`
                         : order.transactionHash}
                     </a>
+                    <div className="flex items-center gap-2 mt-1">
+                      {order.transactionHash.length === 66 ? (
+                        <>
+                          <span className="text-xs text-cyber-green">✓ Hash válido</span>
+                          <span className="text-xs text-text-secondary">({order.transactionHash.length} chars)</span>
+                        </>
+                      ) : (
+                        <span className="text-xs text-red-400">⚠️ Hash incompleto ({order.transactionHash.length} chars)</span>
+                      )}
+                    </div>
                     <span className="text-xs text-text-secondary mt-1">
-                      {order.transactionHash.length < 66 ? '⚠️ Hash incompleto' : '✓ Hash completo'}
+                      <a 
+                        href={`https://${process.env.NEXT_PUBLIC_TESTNET === 'true' ? 'sepolia.' : ''}basescan.org/tx/${order.transactionHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyber-blue hover:text-cyber-purple underline"
+                      >
+                        Ver en BaseScan →
+                      </a>
                     </span>
                   </div>
                 </div>

@@ -29,11 +29,32 @@ export async function GET(
       if (paymentStatus) {
         // Try different possible properties for transaction hash
         const statusAny = paymentStatus as any;
-        transactionHash = statusAny.transactionHash 
+        
+        // Check all possible hash locations
+        const possibleHash = statusAny.transactionHash 
           || statusAny.txHash 
           || statusAny.transaction?.hash 
           || statusAny.hash
-          || id;
+          || statusAny.transactionHash
+          || statusAny.result?.transactionHash
+          || statusAny.result?.hash;
+        
+        // Only use if it's a valid hash format (66 chars, starts with 0x)
+        if (possibleHash && 
+            typeof possibleHash === 'string' &&
+            possibleHash.length === 66 && 
+            possibleHash.startsWith('0x')) {
+          transactionHash = possibleHash;
+          console.log('✅ Found valid transaction hash:', transactionHash);
+        } else {
+          // If id itself looks like a valid hash, use it
+          if (id.length === 66 && id.startsWith('0x')) {
+            transactionHash = id;
+            console.log('✅ Using id as transaction hash:', transactionHash);
+          } else {
+            console.warn('⚠️ No valid transaction hash found, using id:', id);
+          }
+        }
       }
 
       const status = {
@@ -52,7 +73,9 @@ export async function GET(
       const FULL_HASH_LENGTH = 66;
       let transactionHash = id;
       
-      if (id.length < FULL_HASH_LENGTH || !id.startsWith('0x')) {
+      if (id.length === FULL_HASH_LENGTH && id.startsWith('0x')) {
+        console.log('✅ Using id as transaction hash (fallback):', transactionHash);
+      } else {
         console.log('⚠️ Payment ID is not a full transaction hash:', id);
       }
 

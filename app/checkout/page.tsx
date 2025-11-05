@@ -111,15 +111,6 @@ export default function CheckoutPage() {
       console.log('📊 Payment object:', JSON.stringify(payment, null, 2));
       console.log('📊 Payment properties:', Object.keys(payment));
       
-      // Try to extract transaction hash from payment object
-      // Base Pay SDK might return it in different places
-      const paymentAny = payment as any;
-      let txHash = paymentAny.transactionHash 
-        || paymentAny.txHash 
-        || paymentAny.hash
-        || paymentAny.transaction?.hash
-        || payment.id;
-
       setPaymentStatus('Esperando confirmación en la blockchain...');
       
       // Wait for payment to be confirmed and get the real transaction hash
@@ -127,20 +118,78 @@ export default function CheckoutPage() {
       
       console.log('🔍 Polling payment status for hash:', payment.id);
       
-      // Poll payment status until we get the transaction hash
-      try {
-        const paymentStatus = await pollPaymentStatus(payment.id, isTestnet, 2000, 30);
-        
-        // Get the transaction hash from the payment status
-        if (paymentStatus.transactionHash && paymentStatus.transactionHash.length === 66) {
-          txHash = paymentStatus.transactionHash;
-          console.log('✅ Got transaction hash from payment status:', txHash);
-        } else {
-          console.log('⚠️ Payment status does not have valid transaction hash:', paymentStatus);
+      // Poll payment status multiple times to get the real transaction hash
+      let txHash: string | null = null;
+      let attempts = 0;
+      const maxAttempts = 30;
+      const pollInterval = 2000; // 2 seconds
+      
+      while (attempts < maxAttempts && !txHash) {
+        try {
+          const paymentStatus = await getPaymentStatus(payment.id, isTestnet);
+          
+          console.log(`📊 Attempt ${attempts + 1} - Payment status:`, JSON.stringify(paymentStatus, null, 2));
+          
+          // Check if we have a valid transaction hash
+          if (paymentStatus.transactionHash && 
+              paymentStatus.transactionHash.length === 66 && 
+              paymentStatus.transactionHash.startsWith('0x')) {
+            txHash = paymentStatus.transactionHash;
+            console.log('✅ Found valid transaction hash:', txHash);
+            break;
+          }
+          
+          // Also check payment object properties directly
+          const paymentAny = payment as any;
+          const possibleHash = paymentAny.transactionHash 
+            || paymentAny.txHash 
+            || paymentAny.hash
+            || paymentAny.transaction?.hash;
+            
+          if (possibleHash && 
+              typeof possibleHash === 'string' &&
+              possibleHash.length === 66 && 
+              possibleHash.startsWith('0x')) {
+            txHash = possibleHash;
+            console.log('✅ Found transaction hash in payment object:', txHash);
+            break;
+          }
+          
+          // If status is completed but no hash yet, wait a bit more
+          if (paymentStatus.status === 'completed') {
+            console.log('⏳ Payment completed but hash not available yet, waiting...');
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+            attempts++;
+            continue;
+          }
+          
+          // If failed, break
+          if (paymentStatus.status === 'failed') {
+            throw new Error('Payment failed');
+          }
+          
+        } catch (statusError: any) {
+          console.warn(`⚠️ Attempt ${attempts + 1} - Error getting payment status:`, statusError.message);
         }
-      } catch (pollError) {
-        console.warn('⚠️ Could not poll payment status:', pollError);
-        // Continue with txHash from payment object
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
+      }
+      
+      // If we still don't have a hash, try to use payment.id as fallback
+      // but only if it looks like a valid transaction hash
+      if (!txHash) {
+        if (payment.id && 
+            payment.id.length === 66 && 
+            payment.id.startsWith('0x')) {
+          txHash = payment.id;
+          console.log('⚠️ Using payment.id as transaction hash (may not be valid):', txHash);
+        } else {
+          console.error('❌ Could not get valid transaction hash after', maxAttempts, 'attempts');
+          throw new Error('No se pudo obtener el hash de la transacción. Por favor, verifica en tu wallet.');
+        }
       }
 
       setPaymentStatus('¡Pago completado!');
@@ -150,7 +199,8 @@ export default function CheckoutPage() {
         txHash: txHash, 
         hashLength: txHash.length,
         paymentId: payment.id,
-        isFullHash: txHash.length === 66 && txHash.startsWith('0x')
+        isValidHash: txHash.length === 66 && txHash.startsWith('0x'),
+        basescanUrl: `https://${isTestnet ? 'sepolia.' : ''}basescan.org/tx/${txHash}`
       });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
