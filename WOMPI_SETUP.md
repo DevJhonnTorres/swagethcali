@@ -40,7 +40,16 @@ NEXT_PUBLIC_APP_URL=https://swagethcali.vercel.app
 
 ### Configurar Webhook (URL de Eventos)
 
-**✅ Configuración:** Webhook directo a tu aplicación
+**✅ Configuración:** Webhook directo de Wompi a tu aplicación (sin n8n)
+
+#### ¿Cómo funciona?
+
+Wompi envía eventos directamente a tu aplicación Next.js cuando:
+- Se crea una transacción
+- Se actualiza el estado de una transacción  
+- Se aprueba un pago
+
+**No necesitas n8n ni ningún intermediario.** El webhook es parte de la misma API de Wompi.
 
 #### Configuración en Wompi
 
@@ -52,10 +61,13 @@ NEXT_PUBLIC_APP_URL=https://swagethcali.vercel.app
    (Reemplaza `swagethcali.vercel.app` con tu dominio real si es diferente)
 3. Haz clic en el botón **"Guardar"** (botón verde)
 4. El **Secreto de Eventos** es: `prod_events_r2IuTTqGktJQQIgZ8ooRY2bflJ0HwG5a`
-5. Wompi enviará automáticamente eventos cuando:
-   - Se cree una transacción
-   - Se actualice el estado de una transacción
-   - Se apruebe un pago
+   - Este secreto se usa para validar que los webhooks vienen realmente de Wompi
+   - Está configurado en la variable `WOMPI_WEBHOOK_SECRET` en Vercel
+
+**Flujo:**
+```
+Wompi → POST a tu app (/api/wompi/webhook) → Valida firma → Actualiza orden → Envía emails
+```
 
 **Nota:** Asegúrate de que la URL sea accesible públicamente (no `localhost`).
 
