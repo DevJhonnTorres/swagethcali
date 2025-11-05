@@ -128,7 +128,10 @@ export default function CheckoutPage() {
       const maxAttempts = 5;
       let status = null;
       
-      while (attempts < maxAttempts && !txHash) {
+      // Only try to get full hash if current hash is incomplete
+      const needsFullHash = txHash.length < FULL_HASH_LENGTH || !txHash.startsWith('0x');
+      
+      while (attempts < maxAttempts && needsFullHash && txHash.length < FULL_HASH_LENGTH) {
         try {
           status = await getPaymentStatus(
             payment.id,
@@ -179,12 +182,16 @@ export default function CheckoutPage() {
         attempts++;
       }
       
-      if (!txHash && status) {
+      if (!status && needsFullHash) {
+        console.warn('⚠️ Could not get payment status after all attempts');
+      } else if (status && txHash.length < FULL_HASH_LENGTH) {
         console.warn('⚠️ No full transaction hash found after all attempts:', {
           transactionHash: status.transactionHash,
           id: status.id,
           status: status.status,
-          paymentId: payment.id
+          paymentId: payment.id,
+          currentHash: txHash,
+          hashLength: txHash.length
         });
       }
       
