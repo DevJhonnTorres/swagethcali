@@ -46,9 +46,18 @@ export async function POST(request: NextRequest) {
         }
 
         // Create Wompi payment link
-        const wompiPublicKey = process.env.WOMPI_PUBLIC_KEY!;
-        const wompiPrivateKey = process.env.WOMPI_PRIVATE_KEY!;
+        const wompiPublicKey = process.env.WOMPI_PUBLIC_KEY;
+        const wompiPrivateKey = process.env.WOMPI_PRIVATE_KEY;
         const wompiEnv = process.env.WOMPI_ENV || 'sandbox'; // sandbox or production
+        
+        if (!wompiPublicKey || !wompiPrivateKey) {
+          console.error('❌ Missing Wompi credentials:', {
+            hasPublicKey: !!wompiPublicKey,
+            hasPrivateKey: !!wompiPrivateKey,
+          });
+          throw new Error('Wompi credentials not configured. Please set WOMPI_PUBLIC_KEY and WOMPI_PRIVATE_KEY environment variables.');
+        }
+        
         const wompiUrl = wompiEnv === 'production' 
           ? 'https://production.wompi.co/v1' 
           : 'https://sandbox.wompi.co/v1';
@@ -75,6 +84,15 @@ export async function POST(request: NextRequest) {
         };
 
         // Call Wompi API to create payment link
+        console.log('📡 Calling Wompi API:', {
+          url: `${wompiUrl}/payment_links`,
+          hasPrivateKey: !!wompiPrivateKey,
+          hasPublicKey: !!wompiPublicKey,
+          amountCop,
+          reference,
+          integrity: integrity.substring(0, 20) + '...',
+        });
+
         const wompiResponse = await fetch(`${wompiUrl}/payment_links`, {
           method: 'POST',
           headers: {
@@ -84,13 +102,39 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify(paymentLinkData),
         });
 
+        const responseText = await wompiResponse.text();
+        console.log('📥 Wompi API Response:', {
+          status: wompiResponse.status,
+          statusText: wompiResponse.statusText,
+          body: responseText.substring(0, 500),
+        });
+
         if (!wompiResponse.ok) {
-          const errorData = await wompiResponse.json();
-          throw new Error(`Wompi API error: ${JSON.stringify(errorData)}`);
+          let errorData;
+          try {
+            errorData = JSON.parse(responseText);
+          } catch (e) {
+            errorData = { message: responseText };
+          }
+          console.error('❌ Wompi API error:', errorData);
+          throw new Error(`Wompi API error (${wompiResponse.status}): ${JSON.stringify(errorData)}`);
         }
 
-        const wompiData = await wompiResponse.json();
-        const paymentLink = wompiData.data?.permalink || wompiData.permalink;
+        let wompiData;
+        try {
+          wompiData = JSON.parse(responseText);
+        } catch (e) {
+          throw new Error(`Invalid JSON response from Wompi: ${responseText.substring(0, 200)}`);
+        }
+
+        const paymentLink = wompiData.data?.permalink || wompiData.permalink || wompiData.data?.checkout_url;
+        
+        if (!paymentLink) {
+          console.error('❌ No payment link in response:', wompiData);
+          throw new Error(`No payment link in Wompi response: ${JSON.stringify(wompiData)}`);
+        }
+
+        console.log('✅ Payment link created:', paymentLink);
 
         // Save payment to Supabase
         const { error: paymentError } = await supabase
