@@ -14,14 +14,17 @@ Agrega estas variables a tu archivo `.env.local` o en Vercel:
 
 ```env
 # Wompi Configuration
-WOMPI_PUBLIC_KEY=pub_test_xxxxxxxxxxxxx
-WOMPI_PRIVATE_KEY=prv_test_xxxxxxxxxxxxx
+WOMPI_PUBLIC_KEY=pub_test_g3MsCu25QxCwAqi5gmrfjGKtthaBuY2j
+WOMPI_PRIVATE_KEY=prv_test_26EN80UN1Pq0Ytba9EDf6WUMQXgKYDMB
 WOMPI_ENV=sandbox  # 'sandbox' o 'production'
-WOMPI_WEBHOOK_SECRET=xxxxxxxxxxxxxxxxxxxxx
+WOMPI_WEBHOOK_SECRET=test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWIN
+WOMPI_INTEGRITY_SECRET=test_integrity_RiVHFbr2pRsHmAec5JKtrpFiPgU
 
 # App URL (para redirects)
 NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
 ```
+
+**Nota:** Estos son los valores que tienes en tu panel de Wompi. Si cambias de ambiente (sandbox → production), deberás obtener las nuevas llaves desde el panel.
 
 ### Obtener las Llaves
 
@@ -32,14 +35,20 @@ NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
    - **Llave privada** → `WOMPI_PRIVATE_KEY`
    - **Ambiente**: Elige `sandbox` para pruebas o `production` para producción
 
-### Configurar Webhook
+### Configurar Webhook (URL de Eventos)
 
-1. En el panel de Wompi, ve a **Configuración > Webhooks**
-2. Agrega la URL: `https://tu-dominio.vercel.app/api/wompi/webhook`
-3. Copia el **Webhook Secret** → `WOMPI_WEBHOOK_SECRET`
-4. Selecciona los eventos:
-   - `transaction.updated`
-   - `payment.accepted`
+1. En el panel de Wompi, ve a **Programadores > Seguimiento de transacciones**
+2. En el campo **"URL de Eventos"**, agrega:
+   ```
+   https://tu-dominio.vercel.app/api/wompi/webhook
+   ```
+   (Reemplaza `tu-dominio.vercel.app` con tu dominio real)
+3. Haz clic en **"Guardar"**
+4. El **Secreto de Eventos** ya lo tienes: `test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWIN`
+5. Wompi enviará automáticamente eventos cuando:
+   - Se cree una transacción
+   - Se actualice el estado de una transacción
+   - Se apruebe un pago
 
 ---
 
@@ -151,10 +160,11 @@ SELECT * FROM payments WHERE payment_method = 'wompi' ORDER BY created_at DESC;
 - Revisa los logs del servidor para más detalles
 
 ### Webhook no se recibe
-- Verifica que la URL del webhook esté correcta
-- Verifica que el webhook secret coincida
-- Verifica que el webhook esté activo en Wompi
+- Verifica que la **URL de Eventos** esté configurada correctamente en Wompi
+- Verifica que `WOMPI_WEBHOOK_SECRET` coincida con el secreto de eventos en Wompi
+- Verifica que la URL sea accesible públicamente (no `localhost`)
 - Revisa los logs de Vercel para ver si llegan las peticiones
+- Verifica que la URL termine en `/api/wompi/webhook`
 
 ### La transacción no se actualiza
 - Verifica que el webhook esté configurado correctamente
