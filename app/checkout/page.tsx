@@ -342,8 +342,14 @@ export default function CheckoutPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create payment link');
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          const text = await response.text();
+          throw new Error(`Error ${response.status}: ${text || 'Failed to create payment link'}`);
+        }
+        throw new Error(errorData.details || errorData.error || 'Failed to create payment link');
       }
 
       const data = await response.json();

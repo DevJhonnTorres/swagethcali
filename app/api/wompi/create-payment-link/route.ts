@@ -163,21 +163,42 @@ export async function POST(request: NextRequest) {
         });
       } catch (dbError) {
         console.error('❌ Database/Wompi error:', dbError);
+        const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown error';
+        const errorDetails = dbError instanceof Error ? dbError.stack : String(dbError);
+        
+        console.error('❌ Full error details:', errorDetails);
+        
         return NextResponse.json(
-          { error: 'Failed to create payment link', details: dbError instanceof Error ? dbError.message : 'Unknown error' },
+          { 
+            error: 'Failed to create payment link', 
+            details: errorMessage,
+            // Only include stack in development
+            ...(process.env.NODE_ENV === 'development' && { stack: errorDetails })
+          },
           { status: 500 }
         );
       }
     } else {
+      console.error('❌ Supabase not configured');
       return NextResponse.json(
-        { error: 'Database not configured' },
+        { error: 'Database not configured', details: 'Supabase client is not initialized' },
         { status: 500 }
       );
     }
   } catch (error) {
     console.error('❌ Error creating Wompi payment link:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = error instanceof Error ? error.stack : String(error);
+    
+    console.error('❌ Full error details:', errorDetails);
+    
     return NextResponse.json(
-      { error: 'Failed to create payment link', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Failed to create payment link', 
+        details: errorMessage,
+        // Only include stack in development
+        ...(process.env.NODE_ENV === 'development' && { stack: errorDetails })
+      },
       { status: 500 }
     );
   }
