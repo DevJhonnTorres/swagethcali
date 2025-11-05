@@ -37,18 +37,24 @@ NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
 
 ### Configurar Webhook (URL de Eventos)
 
+**⚠️ IMPORTANTE:** Actualmente tienes configurada la URL: `https://ekinoxis.app.n8n.cloud/webhook/wompi-pago`
+
+Para que funcione con tu aplicación, necesitas cambiarla:
+
 1. En el panel de Wompi, ve a **Programadores > Seguimiento de transacciones**
-2. En el campo **"URL de Eventos"**, agrega:
+2. En el campo **"URL de Eventos"**, cambia la URL actual por:
    ```
    https://tu-dominio.vercel.app/api/wompi/webhook
    ```
-   (Reemplaza `tu-dominio.vercel.app` con tu dominio real)
+   (Reemplaza `tu-dominio.vercel.app` con tu dominio real de Vercel, ej: `swagethcali.vercel.app`)
 3. Haz clic en **"Guardar"**
 4. El **Secreto de Eventos** ya lo tienes: `test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWINF`
 5. Wompi enviará automáticamente eventos cuando:
    - Se cree una transacción
    - Se actualice el estado de una transacción
    - Se apruebe un pago
+
+**Nota:** Si prefieres usar n8n como intermediario, puedes configurar n8n para que reenvíe los eventos a tu endpoint `/api/wompi/webhook`, pero es más simple usar directamente la URL de tu aplicación.
 
 ---
 
