@@ -23,7 +23,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>('');
   const [txHash, setTxHash] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'crypto' | 'card'>('crypto');
+  const [paymentMethod, setPaymentMethod] = useState<'crypto' | 'wompi'>('crypto');
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     email: '',
     name: '',
@@ -302,6 +302,102 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleWompiPayment = async () => {
+    setIsProcessing(true);
+    setPaymentStatus('Creando link de pago...');
+
+    try {
+      // Calculate totals
+      const shippingCents = cart.total > 200000 ? 0 : 15000;
+      const taxCents = Math.round(cart.total * 0.19);
+      const totalAmountCents = cart.total + shippingCents + taxCents;
+      const totalUsd = totalAmountCents / 100;
+      const amountCop = Math.round(totalUsd * 4200);
+
+      console.log('💳 Creating Wompi payment link:', { 
+        totalUsd, 
+        amountCop,
+        items: cart.items.length 
+      });
+
+      // Create payment link via API
+      const response = await fetch('/api/wompi/create-payment-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: totalUsd,
+          currency: 'COP',
+          items: cart.items,
+          customerInfo: {
+            name: contactInfo.name,
+            email: contactInfo.email,
+            phone: contactInfo.phone,
+            address: contactInfo.address,
+            city: contactInfo.city,
+            country: contactInfo.country,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment link');
+      }
+
+      const data = await response.json();
+      const { paymentLink, orderId, paymentId } = data;
+
+      console.log('✅ Payment link created:', { paymentLink, orderId, paymentId });
+
+      // Save order locally for confirmation page
+      try {
+        const subtotalCents = cart.total;
+        const shippingCents = subtotalCents > 20000 ? 0 : 1500;
+        const taxCents = Math.round(cart.total * 0.19);
+        const totalCents = subtotalCents + shippingCents + taxCents;
+
+        const lastOrder = {
+          orderId: orderId,
+          paymentId: paymentId,
+          transactionHash: null, // Will be updated via webhook
+          items: cart.items,
+          totals: {
+            subtotal: subtotalCents,
+            shipping: shippingCents,
+            tax: taxCents,
+            total: totalCents,
+          },
+          customer: {
+            name: contactInfo.name,
+            email: contactInfo.email,
+            phone: contactInfo.phone,
+            address: contactInfo.address,
+            city: contactInfo.city,
+            country: contactInfo.country,
+          },
+          method: 'Tarjeta (Wompi)',
+        };
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastOrder', JSON.stringify(lastOrder));
+        }
+      } catch (saveError) {
+        console.error('❌ Error saving order:', saveError);
+      }
+
+      setPaymentStatus('Redirigiendo a Wompi...');
+
+      // Redirect to Wompi payment page
+      window.location.href = paymentLink;
+    } catch (error) {
+      console.error('❌ Error processing Wompi payment:', error);
+      setPaymentStatus(`Error: ${error instanceof Error ? error.message : 'Error al crear el link de pago'}`);
+      setIsProcessing(false);
+    }
+  };
+
   if (cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-brand-black flex items-center justify-center relative">
@@ -501,18 +597,18 @@ export default function CheckoutPage() {
                     </button>
 
                     <button
-                      onClick={() => setPaymentMethod('card')}
+                      onClick={() => setPaymentMethod('wompi')}
                       className={`p-4 border-2 rounded-lg transition-all ${
-                        paymentMethod === 'card'
+                        paymentMethod === 'wompi'
                           ? 'border-cyber-blue bg-cyber-blue/20 shadow-lg shadow-cyber-blue/20'
                           : 'border-eth-gray/30 hover:border-cyber-blue/50 bg-bg-card/50'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <CreditCard className={`w-6 h-6 ${paymentMethod === 'card' ? 'text-cyber-blue' : 'text-eth-gray'}`} />
+                        <CreditCard className={`w-6 h-6 ${paymentMethod === 'wompi' ? 'text-cyber-blue' : 'text-eth-gray'}`} />
                         <div className="text-left">
-                          <div className={`font-medium ${paymentMethod === 'card' ? 'text-white' : 'text-text-secondary'}`}>Tarjeta</div>
-                          <div className="text-sm text-text-secondary">Próximamente</div>
+                          <div className={`font-medium ${paymentMethod === 'wompi' ? 'text-white' : 'text-text-secondary'}`}>Tarjeta (Wompi)</div>
+                          <div className="text-sm text-text-secondary">Pago en COP</div>
                         </div>
                       </div>
                     </button>
@@ -604,17 +700,79 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-              {/* Card Payment (Coming Soon) */}
-                {paymentMethod === 'card' && (
-                  <div className="bg-bg-card/30 border border-eth-gray/30 rounded-lg p-8 text-center">
-                    <CreditCard className="w-12 h-12 text-eth-gray mx-auto mb-4" />
-                    <h3 className="text-lg font-heading font-medium text-white mb-2">
-                      Pago con Tarjeta
-                    </h3>
-                    <p className="text-text-secondary">
-                      Esta opción estará disponible próximamente. 
-                      Por ahora, utiliza el pago con Base Pay.
-                    </p>
+              {/* Wompi Payment */}
+                {paymentMethod === 'wompi' && (
+                  <div className="space-y-6">
+                    <div className="bg-cyber-purple/10 border border-cyber-purple/30 rounded-lg p-6">
+                      <h4 className="font-heading text-lg text-cyber-purple mb-3 flex items-center gap-2">
+                        <CreditCard className="w-5 h-5" />
+                        Wompi - Tarjeta de Crédito/Débito
+                      </h4>
+                      <p className="text-text-secondary mb-4">
+                        Pago seguro con tarjeta de crédito o débito en pesos colombianos (COP). 
+                        Aceptamos todas las tarjetas principales.
+                      </p>
+                      
+                      <div className="space-y-2 text-sm bg-bg-card/50 p-4 rounded border border-eth-gray/20">
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Moneda:</span>
+                          <span className="font-medium text-cyber-purple">COP (Pesos)</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Métodos:</span>
+                          <span className="font-medium text-cyber-purple">Tarjeta, PSE, Nequi</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Seguridad:</span>
+                          <span className="font-medium text-cyber-green">PCI DSS</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary">Tiempo:</span>
+                          <span className="font-medium text-cyber-green">Inmediato</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Wompi Payment Button */}
+                    <button
+                      onClick={handleWompiPayment}
+                      disabled={isProcessing}
+                      className="w-full relative bg-gradient-to-r from-cyber-purple to-cyber-blue hover:from-cyber-blue hover:to-cyber-purple disabled:from-eth-gray disabled:to-eth-gray text-white font-heading uppercase py-4 px-6 rounded-lg transition-all duration-300 border border-cyber-purple/50 disabled:border-eth-gray/30 shadow-lg hover:shadow-cyber-purple/50"
+                    >
+                      {isProcessing ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>{paymentStatus || 'Creando link de pago...'}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <CreditCard className="w-5 h-5" />
+                          <span>Pagar con Tarjeta (Wompi)</span>
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Payment Status */}
+                    {paymentStatus && (
+                      <div className={`p-4 rounded-lg border ${
+                        paymentStatus.includes('Error') 
+                          ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+                          : paymentStatus.includes('Redirigiendo')
+                          ? 'bg-cyber-green/10 border-cyber-green/30 text-cyber-green'
+                          : 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          {paymentStatus.includes('Error') ? (
+                            <span className="text-red-400">✗</span>
+                          ) : paymentStatus.includes('Redirigiendo') ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          )}
+                          <span className="font-medium">{paymentStatus}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
