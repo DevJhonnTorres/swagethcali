@@ -68,17 +68,24 @@ export default function OrderConfirmationPage() {
               <div className="flex justify-between"><span className="text-text-secondary">Método de pago:</span><span className="text-white font-medium">{order?.method || 'USDC en Base (Base Pay)'}</span></div>
               <div className="flex justify-between"><span className="text-text-secondary">Estado:</span><span className="text-cyber-green font-medium">Confirmado</span></div>
               {order?.transactionHash && (
-                <div className="flex justify-between">
+                <div className="flex justify-between items-start">
                   <span className="text-text-secondary">Tx Hash:</span>
-                  <a 
-                    href={`https://sepolia.basescan.org/tx/${order.transactionHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyber-blue hover:text-cyber-purple font-mono truncate max-w-[220px] hover:underline"
-                    title={order.transactionHash}
-                  >
-                    {order.transactionHash}
-                  </a>
+                  <div className="flex flex-col items-end">
+                    <a 
+                      href={`https://${process.env.NEXT_PUBLIC_TESTNET === 'true' ? 'sepolia.' : ''}basescan.org/tx/${order.transactionHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyber-blue hover:text-cyber-purple font-mono text-xs hover:underline break-all text-right"
+                      title={order.transactionHash}
+                    >
+                      {order.transactionHash.length > 42 
+                        ? `${order.transactionHash.slice(0, 10)}...${order.transactionHash.slice(-8)}`
+                        : order.transactionHash}
+                    </a>
+                    <span className="text-xs text-text-secondary mt-1">
+                      {order.transactionHash.length < 66 ? '⚠️ Hash incompleto' : '✓ Hash completo'}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>

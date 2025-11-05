@@ -163,12 +163,32 @@ export default function CheckoutPage() {
           length: txHash.length,
           expected: FULL_HASH_LENGTH
         });
+        // Don't save truncated hash - use payment.id as fallback but log warning
+        console.warn('⚠️ NOT saving truncated hash. Using payment.id as fallback.');
+      }
+
+      // Only use hash if it's complete (66 chars) or if payment.id is not a hash
+      // If payment.id is a hash but truncated, we'll still save it but log it
+      const finalTxHash = (txHash.length >= FULL_HASH_LENGTH) ? txHash : (payment.id || txHash);
+      
+      if (finalTxHash.length < FULL_HASH_LENGTH && finalTxHash.startsWith('0x')) {
+        console.error('❌ CRITICAL: Saving incomplete transaction hash:', {
+          hash: finalTxHash,
+          length: finalTxHash.length,
+          expected: FULL_HASH_LENGTH,
+          paymentId: payment.id
+        });
       }
 
       setPaymentStatus('¡Pago completado!');
-      setTxHash(txHash);
+      setTxHash(finalTxHash);
 
-      console.log('✅ Payment completed:', { txHash, fullHash: txHash.length >= 66 });
+      console.log('✅ Payment completed:', { 
+        txHash: finalTxHash, 
+        fullHash: finalTxHash.length >= 66,
+        hashLength: finalTxHash.length,
+        paymentId: payment.id
+      });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
       try {
