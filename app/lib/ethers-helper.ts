@@ -66,11 +66,11 @@ export async function waitForTransactionHash(
         
         if (receipt) {
           console.log('✅ Transaction confirmed:', {
-            hash: receipt.transactionHash,
+            hash: receipt.hash,
             blockNumber: receipt.blockNumber,
-            confirmations: receipt.confirmations,
+            confirmations: receipt.confirmations || 0,
           });
-          return receipt.transactionHash;
+          return receipt.hash;
         }
       } catch (error: any) {
         // Transaction not found yet, continue polling
@@ -89,10 +89,10 @@ export async function waitForTransactionHash(
     if (!receipt) {
       console.log('⏳ Using waitForTransaction...');
       try {
-        const tx = await provider.waitForTransaction(txHashOrId, 1, timeout);
-        if (tx && tx.transactionHash) {
-          console.log('✅ Transaction confirmed via waitForTransaction:', tx.transactionHash);
-          return tx.transactionHash;
+        const receiptFromWait = await provider.waitForTransaction(txHashOrId, 1, timeout);
+        if (receiptFromWait && receiptFromWait.hash) {
+          console.log('✅ Transaction confirmed via waitForTransaction:', receiptFromWait.hash);
+          return receiptFromWait.hash;
         }
       } catch (waitError: any) {
         console.error('❌ Error waiting for transaction:', waitError.message);
