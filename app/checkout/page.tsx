@@ -112,8 +112,9 @@ export default function CheckoutPage() {
 
       console.log('✅ Payment initiated:', { paymentId: payment.id });
       
-      // Wait a bit for the transaction to be confirmed on-chain
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait longer for the transaction to be confirmed on-chain
+      // Base Pay transactions can take a few seconds to be indexed
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Get the full transaction hash from payment status
       let txHash = payment.id || '';
@@ -121,39 +122,70 @@ export default function CheckoutPage() {
       // A full Ethereum tx hash is 66 characters (0x + 64 hex chars)
       const FULL_HASH_LENGTH = 66;
       
-      try {
-        const status = await getPaymentStatus(
-          payment.id,
-          process.env.NEXT_PUBLIC_TESTNET === 'true'
-        );
-        
-        console.log('📊 Payment status:', JSON.stringify(status, null, 2));
-        
-        // Try multiple ways to get the full transaction hash
-        if (status.transactionHash && status.transactionHash.length >= FULL_HASH_LENGTH) {
-          txHash = status.transactionHash;
-          console.log('✅ Full transaction hash from status.transactionHash:', txHash);
-        } else if ((status as any).txHash && (status as any).txHash.length >= FULL_HASH_LENGTH) {
-          txHash = (status as any).txHash;
-          console.log('✅ Full transaction hash from status.txHash:', txHash);
-        } else if (status.id && status.id.length >= FULL_HASH_LENGTH && status.id.startsWith('0x')) {
-          txHash = status.id;
-          console.log('✅ Full transaction hash from status.id:', txHash);
-        } else {
-          console.warn('⚠️ No full transaction hash found in status:', {
-            transactionHash: status.transactionHash,
-            id: status.id,
-            status: status.status,
-            paymentId: payment.id
-          });
-          // If payment.id looks like a partial hash, log it
-          if (payment.id && payment.id.startsWith('0x') && payment.id.length < FULL_HASH_LENGTH) {
-            console.warn('⚠️ payment.id appears to be truncated:', payment.id);
+      // Try multiple times to get the full transaction hash
+      // Sometimes the transaction hash is not immediately available
+      let attempts = 0;
+      const maxAttempts = 5;
+      let status = null;
+      
+      while (attempts < maxAttempts && !txHash) {
+        try {
+          status = await getPaymentStatus(
+            payment.id,
+            process.env.NEXT_PUBLIC_TESTNET === 'true'
+          );
+          
+          console.log(`📊 Payment status (attempt ${attempts + 1}):`, JSON.stringify(status, null, 2));
+          
+          // Try multiple ways to get the full transaction hash
+          if (status.transactionHash && status.transactionHash.length >= FULL_HASH_LENGTH) {
+            txHash = status.transactionHash;
+            console.log('✅ Full transaction hash from status.transactionHash:', txHash);
+            break;
+          } else if ((status as any).txHash && (status as any).txHash.length >= FULL_HASH_LENGTH) {
+            txHash = (status as any).txHash;
+            console.log('✅ Full transaction hash from status.txHash:', txHash);
+            break;
+          } else if (status.id && status.id.length >= FULL_HASH_LENGTH && status.id.startsWith('0x')) {
+            txHash = status.id;
+            console.log('✅ Full transaction hash from status.id:', txHash);
+            break;
+          } else {
+            console.warn(`⚠️ Attempt ${attempts + 1}: No full transaction hash found in status:`, {
+              transactionHash: status.transactionHash,
+              id: status.id,
+              status: status.status,
+              paymentId: payment.id,
+              hashLength: status.transactionHash?.length || status.id?.length || 0
+            });
+            
+            // If payment.id looks like a partial hash, log it
+            if (payment.id && payment.id.startsWith('0x') && payment.id.length < FULL_HASH_LENGTH) {
+              console.warn('⚠️ payment.id appears to be truncated:', payment.id);
+            }
+            
+            // Wait before retrying
+            if (attempts < maxAttempts - 1) {
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+          }
+        } catch (statusError) {
+          console.error(`❌ Attempt ${attempts + 1}: Could not get payment status:`, statusError);
+          if (attempts < maxAttempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
           }
         }
-      } catch (statusError) {
-        console.error('❌ Could not get payment status:', statusError);
-        // Continue with payment.id as fallback
+        
+        attempts++;
+      }
+      
+      if (!txHash && status) {
+        console.warn('⚠️ No full transaction hash found after all attempts:', {
+          transactionHash: status.transactionHash,
+          id: status.id,
+          status: status.status,
+          paymentId: payment.id
+        });
       }
       
       // Validate hash length before saving
