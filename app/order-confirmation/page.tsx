@@ -68,19 +68,17 @@ export default function OrderConfirmationPage() {
               <div className="flex justify-between"><span className="text-text-secondary">Método de pago:</span><span className="text-white font-medium">{order?.method || 'USDC en Base (Base Pay)'}</span></div>
               <div className="flex justify-between"><span className="text-text-secondary">Estado:</span><span className="text-cyber-green font-medium">Confirmado</span></div>
               {order?.transactionHash && (
-                <div className="flex justify-between items-start">
-                  <span className="text-text-secondary">Tx Hash:</span>
-                  <div className="flex flex-col items-end">
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-text-secondary whitespace-nowrap">Tx Hash:</span>
+                  <div className="flex flex-col items-end flex-1 min-w-0">
                     <a 
                       href={`https://${process.env.NEXT_PUBLIC_TESTNET === 'true' ? 'sepolia.' : ''}basescan.org/tx/${order.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyber-blue hover:text-cyber-purple font-mono text-xs hover:underline break-all text-right max-w-xs"
+                      className="text-cyber-blue hover:text-cyber-purple font-mono text-xs hover:underline break-all text-right block w-full"
                       title={`Ver en BaseScan: ${order.transactionHash}`}
                     >
-                      {order.transactionHash.length === 66 
-                        ? `${order.transactionHash.slice(0, 10)}...${order.transactionHash.slice(-8)}`
-                        : order.transactionHash}
+                      {order.transactionHash}
                     </a>
                     <div className="flex items-center gap-2 mt-1">
                       {order.transactionHash.length === 66 ? (
