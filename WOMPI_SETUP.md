@@ -17,8 +17,8 @@ Agrega estas variables a tu archivo `.env.local` o en Vercel:
 WOMPI_PUBLIC_KEY=pub_test_g3MsCu25QxCwAqi5gmrfjGKtthaBuY2j
 WOMPI_PRIVATE_KEY=prv_test_26EN80UN1Pq0Ytba9EDf6WUMQXgKYDMB
 WOMPI_ENV=sandbox  # 'sandbox' o 'production'
-WOMPI_WEBHOOK_SECRET=test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWIN
-WOMPI_INTEGRITY_SECRET=test_integrity_RiVHFbr2pRsHmAec5JKtrpFiPgU
+WOMPI_WEBHOOK_SECRET=test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWINF
+WOMPI_INTEGRITY_SECRET=test_integrity_RiVHFbr2pRsHmAec5JKtrpFiPgU7kHZ4
 
 # App URL (para redirects)
 NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
@@ -44,7 +44,7 @@ NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
    ```
    (Reemplaza `tu-dominio.vercel.app` con tu dominio real)
 3. Haz clic en **"Guardar"**
-4. El **Secreto de Eventos** ya lo tienes: `test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWIN`
+4. El **Secreto de Eventos** ya lo tienes: `test_events_Hpx12dLsXzgpmEmLnfyv8ksJJI7QWINF`
 5. Wompi enviará automáticamente eventos cuando:
    - Se cree una transacción
    - Se actualice el estado de una transacción
