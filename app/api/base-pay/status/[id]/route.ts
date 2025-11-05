@@ -23,19 +23,30 @@ export async function GET(
         testnet: testnet || false,
       });
 
+      // The SDK's PaymentStatus type may not include transactionHash in types
+      // but it might be available at runtime - check multiple possible properties
+      const statusAny = status as any;
+      const transactionHash = 
+        statusAny.transactionHash || 
+        statusAny.txHash || 
+        statusAny.transaction?.hash ||
+        (statusAny.id && statusAny.id.length === 66 && statusAny.id.startsWith('0x') ? statusAny.id : null) ||
+        null;
+
       console.log('✅ Payment status from SDK:', {
         id: status.id,
         status: status.status,
-        transactionHash: status.transactionHash,
-        hashLength: status.transactionHash?.length || 0,
+        transactionHash: transactionHash,
+        hashLength: transactionHash?.length || 0,
+        availableProperties: Object.keys(statusAny),
       });
 
       return NextResponse.json({
         id: status.id,
         status: status.status,
-        transactionHash: status.transactionHash,
+        transactionHash: transactionHash,
         testnet,
-        completedAt: status.completedAt || new Date().toISOString(),
+        completedAt: statusAny.completedAt || new Date().toISOString(),
       }, { status: 200 });
     } catch (sdkError: any) {
       console.error('❌ SDK Error getting payment status:', sdkError);
