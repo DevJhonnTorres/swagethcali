@@ -14,6 +14,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { orderId, paymentId, transactionHash, orderData } = body;
 
+    // Validate transaction hash format
+    if (!transactionHash || typeof transactionHash !== 'string') {
+      console.error('❌ Invalid transaction hash:', transactionHash);
+      return NextResponse.json(
+        { error: 'Transaction hash is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate hash format (should be 66 chars: 0x + 64 hex chars)
+    if (transactionHash.length !== 66 || !transactionHash.startsWith('0x')) {
+      console.warn('⚠️ Transaction hash format may be invalid:', {
+        hash: transactionHash,
+        length: transactionHash.length,
+        startsWith0x: transactionHash.startsWith('0x')
+      });
+    }
+
+    console.log('💾 Saving transaction hash:', {
+      orderId,
+      paymentId,
+      transactionHash,
+      hashLength: transactionHash.length,
+      isValidFormat: transactionHash.length === 66 && transactionHash.startsWith('0x')
+    });
+
     // Update payment status in Supabase (if configured)
     if (supabase) {
       try {
@@ -42,6 +68,8 @@ export async function POST(request: NextRequest) {
           orderUpdate.customer_name = orderData.customerName || null;
           orderUpdate.customer_email = orderData.customerEmail || null;
           orderUpdate.customer_phone = orderData.customerPhone || null;
+
+          
           
           if (orderData?.shippingAddress) {
             // Parse shipping address (format: "address, city, country")

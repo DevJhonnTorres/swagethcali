@@ -246,10 +246,16 @@ export default function CheckoutPage() {
         const taxCents = Math.round(cart.total * 0.19);
         const totalCents = subtotalCents + shippingCents + taxCents;
 
+        // Validate txHash before saving
+        if (!txHash || txHash.length !== 66 || !txHash.startsWith('0x')) {
+          console.error('❌ Invalid transaction hash format:', txHash);
+          throw new Error('Hash de transacción inválido');
+        }
+
         const lastOrder = {
           orderId: orderId,
           paymentId: paymentId,
-          transactionHash: txHash,
+          transactionHash: txHash, // Ensure we're saving the validated hash
           items: cart.items,
           totals: {
             subtotal: subtotalCents,
@@ -267,10 +273,20 @@ export default function CheckoutPage() {
           },
           method: 'USDC en Base (Base Pay)',
         };
+        
+        console.log('💾 Saving order to localStorage:', {
+          orderId,
+          transactionHash: txHash,
+          hashLength: txHash.length,
+          isValid: txHash.length === 66 && txHash.startsWith('0x')
+        });
+        
         if (typeof window !== 'undefined') {
           localStorage.setItem('lastOrder', JSON.stringify(lastOrder));
         }
-      } catch (_) {}
+      } catch (saveError) {
+        console.error('❌ Error saving order:', saveError);
+      }
 
       // Wait a moment before redirecting
       await new Promise((resolve) => setTimeout(resolve, 800));
