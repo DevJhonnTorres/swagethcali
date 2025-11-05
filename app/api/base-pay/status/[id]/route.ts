@@ -25,6 +25,7 @@ export async function GET(
 
       // The SDK's PaymentStatus type may not include transactionHash in types
       // but it might be available at runtime - check multiple possible properties
+      // Use type assertion to access properties that may exist at runtime
       const statusAny = status as any;
       const transactionHash = 
         statusAny.transactionHash || 
@@ -55,7 +56,7 @@ export async function GET(
       return NextResponse.json({
         id,
         status: 'completed' as const,
-        transactionHash: null, // SDK failed, can't get hash
+        transactionHash: null,
         testnet,
         error: sdkError.message || 'Failed to get payment status from SDK',
       }, { status: 200 });
