@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { pay } from '@base-org/account';
 import { formatUSDCAmount } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
-import { waitForTransactionHash } from '@/app/lib/ethers-helper';
 
 interface ContactInfo {
   email: string;
@@ -109,29 +108,15 @@ export default function CheckoutPage() {
         },
       });
 
-      setPaymentStatus('Esperando confirmación en la red...');
-
-      console.log('✅ Payment initiated:', { paymentId: payment.id });
-      
-      // Use ethers to wait for transaction confirmation and get full hash
-      const isTestnet = process.env.NEXT_PUBLIC_TESTNET === 'true';
-      
-      setPaymentStatus('Confirmando transacción en la blockchain...');
-      
-      const txHash = await waitForTransactionHash(
-        payment.id,
-        isTestnet,
-        60000 // 60 seconds timeout
-      );
-
       setPaymentStatus('¡Pago completado!');
+      
+      // Use payment.id as transaction hash (Base Pay returns the tx hash)
+      const txHash = payment.id;
       setTxHash(txHash);
 
       console.log('✅ Payment completed:', { 
         txHash: txHash, 
-        hashLength: txHash.length,
-        paymentId: payment.id,
-        isFullHash: txHash.length === 66
+        paymentId: payment.id
       });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
