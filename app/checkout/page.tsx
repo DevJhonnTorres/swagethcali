@@ -6,7 +6,7 @@ import { ArrowLeft, CreditCard, Wallet, Loader2, CheckCircle2 } from 'lucide-rea
 import Link from 'next/link';
 // Base Pay SDK (real payments)
 import { pay } from '@base-org/account';
-import { formatUSDCAmount } from '@/app/lib/base-pay';
+import { formatUSDCAmount, getPaymentStatus, pollPaymentStatus } from '@/app/lib/base-pay';
 import { formatPrice } from '@/app/lib/utils';
 
 interface ContactInfo {
@@ -108,15 +108,49 @@ export default function CheckoutPage() {
         },
       });
 
-      setPaymentStatus('¡Pago completado!');
+      console.log('📊 Payment object:', JSON.stringify(payment, null, 2));
+      console.log('📊 Payment properties:', Object.keys(payment));
       
-      // Use payment.id as transaction hash (Base Pay returns the tx hash)
-      const txHash = payment.id;
+      // Try to extract transaction hash from payment object
+      // Base Pay SDK might return it in different places
+      const paymentAny = payment as any;
+      let txHash = paymentAny.transactionHash 
+        || paymentAny.txHash 
+        || paymentAny.hash
+        || paymentAny.transaction?.hash
+        || payment.id;
+
+      setPaymentStatus('Esperando confirmación en la blockchain...');
+      
+      // Wait for payment to be confirmed and get the real transaction hash
+      const isTestnet = process.env.NEXT_PUBLIC_TESTNET === 'true';
+      
+      console.log('🔍 Polling payment status for hash:', payment.id);
+      
+      // Poll payment status until we get the transaction hash
+      try {
+        const paymentStatus = await pollPaymentStatus(payment.id, isTestnet, 2000, 30);
+        
+        // Get the transaction hash from the payment status
+        if (paymentStatus.transactionHash && paymentStatus.transactionHash.length === 66) {
+          txHash = paymentStatus.transactionHash;
+          console.log('✅ Got transaction hash from payment status:', txHash);
+        } else {
+          console.log('⚠️ Payment status does not have valid transaction hash:', paymentStatus);
+        }
+      } catch (pollError) {
+        console.warn('⚠️ Could not poll payment status:', pollError);
+        // Continue with txHash from payment object
+      }
+
+      setPaymentStatus('¡Pago completado!');
       setTxHash(txHash);
 
       console.log('✅ Payment completed:', { 
         txHash: txHash, 
-        paymentId: payment.id
+        hashLength: txHash.length,
+        paymentId: payment.id,
+        isFullHash: txHash.length === 66 && txHash.startsWith('0x')
       });
 
       // Notify backend of payment confirmation (optional, keeps emails/DB)
